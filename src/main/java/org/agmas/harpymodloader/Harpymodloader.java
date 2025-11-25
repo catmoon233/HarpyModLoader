@@ -12,6 +12,7 @@ import net.minecraft.util.Identifier;
 import org.agmas.harpymodloader.commands.ForceRoleCommand;
 import org.agmas.harpymodloader.commands.ListRolesCommand;
 import org.agmas.harpymodloader.commands.SetEnabledRoleCommand;
+import org.agmas.harpymodloader.config.HarpyModLoaderConfig;
 import org.agmas.harpymodloader.modded_murder.ModdedMurderGameMode;
 import org.agmas.harpymodloader.modded_murder.ModdedWeights;
 
@@ -27,7 +28,6 @@ public class Harpymodloader implements ModInitializer {
     public static ArrayList<Role> VANNILA_ROLES = new ArrayList<>();
     public static ArrayList<Role> SPECIAL_ROLES = new ArrayList<>();
     public static ArrayList<Role> OVERWRITE_ROLES = new ArrayList<>();
-
     public static String MOD_ID = "harpymodloader";
 
     public static GameMode MODDED_GAMEMODE;
@@ -37,6 +37,8 @@ public class Harpymodloader implements ModInitializer {
 
     @Override
     public void onInitialize() {
+        HarpyModLoaderConfig.HANDLER.save();
+        HarpyModLoaderConfig.HANDLER.load();
         VANNILA_ROLES.add(TMMRoles.LOOSE_END);
         VANNILA_ROLES.add(TMMRoles.CIVILIAN);
         VANNILA_ROLES.add(TMMRoles.KILLER);
