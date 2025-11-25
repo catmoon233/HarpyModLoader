@@ -1,7 +1,9 @@
 # HarpyModLoader
- Modded role loader for the Harpy Express.
+Modded role loader for the Harpy Express. 
 
-This mod is **not** required by any mod trying to add roles! It is only nessecary if wanting to add items when a player spawns.
+***Custom mods should use TMMRoles.registerRole() to add roles, then let this mod handle role assignment from there.***
+
+This mod is **not** required be imported into any mod! Importing the mod into your project is only nessecary if wanting to add items when a player spawns.
 
 ## What does the mod do?
 
