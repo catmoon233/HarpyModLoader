@@ -15,6 +15,7 @@
     "CustomRolesRoleNameRendererMixin",
     "InnocenceReliantWinTextMixin",
     "InstinctMixin",
-    "LoadedRolesMixin"
+    "LoadedRolesMixin",
+    "MoodRendererMixin"
   ]
 }
