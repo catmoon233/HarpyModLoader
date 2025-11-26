@@ -1,5 +1,12 @@
 # HarpyModLoader
+
 Modded role loader for the Harpy Express. 
+
+## For players:
+
+Start games with the horn, autostart or `/tmm:start harpymodloader:modded` to start a game with modded roles.
+
+## For modders:
 
 ***Custom mods should use TMMRoles.registerRole() to add roles, then let this mod handle role assignment from there.***
 

@@ -4,8 +4,9 @@
   "package": "org.agmas.harpymodloader.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
-    "AutoStartComponentMixin",
-    "CheckModdedWeightsMixin"
+    "VannilaStartMixin",
+    "CheckModdedWeightsMixin",
+    "GameFunctionsMixin"
   ],
   "injectors": {
     "defaultRequire": 1
