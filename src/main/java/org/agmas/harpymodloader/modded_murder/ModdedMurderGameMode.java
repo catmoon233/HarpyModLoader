@@ -130,9 +130,14 @@ public class ModdedMurderGameMode extends MurderGameMode {
 
         Collections.shuffle(shuffledKillerRoles);
 
+        int roleCount= 0;
         for (Role role : shuffledKillerRoles) {
             if (HarpyModLoaderConfig.HANDLER.instance().disabled.contains(role.identifier().getPath())) continue;
-            int roleSpecificDesireCount = (int) Math.ceil((double) desiredRoleCount / players.size());
+            roleCount++;
+        }
+        for (Role role : shuffledKillerRoles) {
+            if (HarpyModLoaderConfig.HANDLER.instance().disabled.contains(role.identifier().getPath())) continue;
+            int roleSpecificDesireCount = Math.min((int) Math.max(Math.round((double) playersForKillerRoles.size() / roleCount),1), desiredRoleCount);
             if (Harpymodloader.ROLE_MAX.containsKey(role.identifier())) roleSpecificDesireCount = Harpymodloader.ROLE_MAX.get(role.identifier());
 
             findAndAssignPlayers(roleSpecificDesireCount, role, playersForKillerRoles,gameWorldComponent,serverWorld);
