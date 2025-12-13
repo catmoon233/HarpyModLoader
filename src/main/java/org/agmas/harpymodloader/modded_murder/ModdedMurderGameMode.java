@@ -6,6 +6,7 @@ import dev.doctor4t.trainmurdermystery.cca.GameWorldComponent;
 import dev.doctor4t.trainmurdermystery.cca.ScoreboardRoleSelectorComponent;
 import dev.doctor4t.trainmurdermystery.cca.TrainWorldComponent;
 import dev.doctor4t.trainmurdermystery.client.gui.RoleAnnouncementTexts;
+import dev.doctor4t.trainmurdermystery.game.GameConstants;
 import dev.doctor4t.trainmurdermystery.game.MurderGameMode;
 import dev.doctor4t.trainmurdermystery.util.AnnounceWelcomePayload;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
@@ -220,11 +221,22 @@ public class ModdedMurderGameMode extends MurderGameMode {
     public int assignVannilaRoles(ServerWorld serverWorld, GameWorldComponent gameWorldComponent, List<ServerPlayerEntity> players) {
         ScoreboardRoleSelectorComponent roleSelector = ScoreboardRoleSelectorComponent.KEY.get(serverWorld.getScoreboard());
 
-        int killerCount = (int)Math.floor(((float)players.size() / 6F));
+        int killerCount = GameConstants.RoleConfig.killerCount;
+        // 确保杀手数量不超过玩家数量
+        killerCount = Math.min(killerCount, players.size());
 
         List<ServerPlayerEntity> playersForVigilante = new ArrayList<>(players);
         playersForVigilante.removeIf(player -> Harpymodloader.FORCED_MODDED_ROLE.containsKey(player.getUuid()));
 
+        List<ServerPlayerEntity> playersForKiller = getServerPlayerEntities(players, roleSelector);
+
+
+        int total = roleSelector.assignKillers(serverWorld, gameWorldComponent, playersForVigilante, killerCount);
+        roleSelector.assignVigilantes(serverWorld, gameWorldComponent, playersForKiller, killerCount);
+        return total;
+    }
+
+    private static @NotNull List<ServerPlayerEntity> getServerPlayerEntities(List<ServerPlayerEntity> players, ScoreboardRoleSelectorComponent roleSelector) {
         List<ServerPlayerEntity> playersForKiller = new ArrayList<>(players);
         playersForKiller.removeIf(player -> {
             if (Harpymodloader.FORCED_MODDED_ROLE_FLIP.containsKey(player.getUuid())) {
@@ -237,10 +249,6 @@ public class ModdedMurderGameMode extends MurderGameMode {
             }
             return false;
         });
-
-
-        int total = roleSelector.assignKillers(serverWorld, gameWorldComponent, playersForVigilante, killerCount);
-        roleSelector.assignVigilantes(serverWorld, gameWorldComponent, playersForKiller, killerCount);
-        return total;
+        return playersForKiller;
     }
 }
