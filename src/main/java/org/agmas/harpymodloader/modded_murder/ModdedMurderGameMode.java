@@ -68,12 +68,12 @@ public class ModdedMurderGameMode extends MurderGameMode {
         ArrayList<Role> shuffledNeutralRoles = new ArrayList<>(TMMRoles.ROLES);
         shuffledNeutralRoles.removeIf(role -> Harpymodloader.VANNILA_ROLES.contains(role) || role.canUseKiller() || role.isInnocent());
 
+        // 获取所有平民玩家，而不仅仅是可被替换的角色
         ArrayList<ServerPlayerEntity> playersForCivillianRoles = new ArrayList<>(players);
         playersForCivillianRoles.removeIf(player -> {
             Role role = gameWorldComponent.getRole(player);
             return !Harpymodloader.OVERWRITE_ROLES.contains(role) || role.canUseKiller();
         });
-
         Collections.shuffle(shuffledCivillianRoles);
         Collections.shuffle(shuffledNeutralRoles);
 
@@ -86,6 +86,7 @@ public class ModdedMurderGameMode extends MurderGameMode {
             neutralRoleCount++;
         }
 
+        // 先分配中立角色
         for (Role role : shuffledNeutralRoles) {
             if (HarpyModLoaderConfig.HANDLER.instance().disabled.contains(role.identifier().getPath())) continue;
             if (assignedNeutralRoles >= neutralDesiredRoleCount) continue;
@@ -93,16 +94,11 @@ public class ModdedMurderGameMode extends MurderGameMode {
             if (Harpymodloader.ROLE_MAX.containsKey(role.identifier())) roleSpecificDesireCount = Harpymodloader.ROLE_MAX.get(role.identifier());
 
             assignedNeutralRoles += findAndAssignPlayers(roleSpecificDesireCount, role, playersForCivillianRoles,gameWorldComponent,serverWorld);
-            playersForCivillianRoles.removeIf(player -> {
-                Role role2 = gameWorldComponent.getRole(player);
-                return !Harpymodloader.OVERWRITE_ROLES.contains(role2);
-            });
+            playersForCivillianRoles.removeIf(player -> !gameWorldComponent.isRole(player, TMMRoles.CIVILIAN));
         }
 
-        playersForCivillianRoles.removeIf(player -> {
-            Role role = gameWorldComponent.getRole(player);
-            return !role.isInnocent();
-        });
+        // 然后为剩余的所有平民分配其他角色
+        playersForCivillianRoles.removeIf(player -> !gameWorldComponent.isRole(player, TMMRoles.CIVILIAN));
 
         int roleCount= 0;
         for (Role role : shuffledCivillianRoles) {
@@ -110,16 +106,47 @@ public class ModdedMurderGameMode extends MurderGameMode {
             roleCount++;
         }
 
-        for (Role role : shuffledCivillianRoles) {
-            if (HarpyModLoaderConfig.HANDLER.instance().disabled.contains(role.identifier().getPath())) continue;
-            int roleSpecificDesireCount = Math.min((int) Math.max(Math.round((double) playersForCivillianRoles.size() / roleCount),1), desiredRoleCount);
-            if (Harpymodloader.ROLE_MAX.containsKey(role.identifier())) roleSpecificDesireCount = Harpymodloader.ROLE_MAX.get(role.identifier());
+        // 修改这里，确保所有剩余的平民都会被分配到角色
+        int remainingCivilians = playersForCivillianRoles.size();
+        if (roleCount > 0) {
+            // 平均分配角色，确保每个平民都能得到一个额外身份
+            int rolesPerType = Math.max(1, remainingCivilians / roleCount);
+            
+            for (Role role : shuffledCivillianRoles) {
+                if (HarpyModLoaderConfig.HANDLER.instance().disabled.contains(role.identifier().getPath())) continue;
+                
+                // 确保至少有一个该类型的角色会被分配
+                int roleSpecificDesireCount = Math.min(rolesPerType, remainingCivilians);
+                if (Harpymodloader.ROLE_MAX.containsKey(role.identifier())) {
+                    roleSpecificDesireCount = Math.min(Harpymodloader.ROLE_MAX.get(role.identifier()), roleSpecificDesireCount);
+                }
 
-            findAndAssignPlayers(roleSpecificDesireCount, role, playersForCivillianRoles,gameWorldComponent,serverWorld);
-            playersForCivillianRoles.removeIf(player -> {
-                Role role2 = gameWorldComponent.getRole(player);
-                return !Harpymodloader.OVERWRITE_ROLES.contains(role2);
-            });
+                int assigned = findAndAssignPlayers(roleSpecificDesireCount, role, playersForCivillianRoles,gameWorldComponent,serverWorld);
+                remainingCivilians -= assigned;
+                
+                // 更新玩家列表，移除已分配角色的玩家
+                playersForCivillianRoles.removeIf(player -> !gameWorldComponent.isRole(player, TMMRoles.CIVILIAN));
+                
+                // 如果没有剩余玩家，则退出循环
+                if (playersForCivillianRoles.isEmpty()) break;
+            }
+            
+            // 如果还有剩余的平民没有分配到角色，则继续分配直到全部分配完毕
+            if (!playersForCivillianRoles.isEmpty()) {
+                for (Role role : shuffledCivillianRoles) {
+                    if (HarpyModLoaderConfig.HANDLER.instance().disabled.contains(role.identifier().getPath())) continue;
+                    
+                    int roleSpecificDesireCount = Math.min(remainingCivilians, playersForCivillianRoles.size());
+                    if (Harpymodloader.ROLE_MAX.containsKey(role.identifier())) {
+                        roleSpecificDesireCount = Math.min(Harpymodloader.ROLE_MAX.get(role.identifier()), roleSpecificDesireCount);
+                    }
+                    
+                    findAndAssignPlayers(roleSpecificDesireCount, role, playersForCivillianRoles, gameWorldComponent, serverWorld);
+                    playersForCivillianRoles.removeIf(player -> !gameWorldComponent.isRole(player, TMMRoles.CIVILIAN));
+                    
+                    if (playersForCivillianRoles.isEmpty()) break;
+                }
+            }
         }
     }
 
