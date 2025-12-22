@@ -53,21 +53,26 @@ public class RoleArgumentType implements ArgumentType<Role> {
 
     @Override
     public Role parse(final StringReader reader) throws CommandSyntaxException {
-        final Identifier roleId = Identifier.fromCommandInput(reader);
+        Identifier roleId = null;
+        String input = new StringReader(reader).readString();
+        try {
+            roleId = Identifier.fromCommandInput(reader);
+        } catch (CommandSyntaxException ignored) {
+        }
         List<Role> matchRoles = new ArrayList<>();
         for (final Role role : WatheRoles.ROLES) {
             if (skipVanilla && Harpymodloader.VANNILA_ROLES.contains(role)) {
                 continue;
             }
-            if (role.identifier().equals(roleId)) {
+            if (role.identifier().equals(roleId) || role.identifier().getPath().startsWith(input)) {
                 matchRoles.add(role);
             }
         }
         if (matchRoles.isEmpty()) {
-            throw ROLE_EMPTY.create(roleId);
+            throw ROLE_EMPTY.create(input);
         }
         if (matchRoles.size() > 1) {
-            throw ROLE_MULTIPLE.create(roleId);
+            throw ROLE_MULTIPLE.create(input);
         }
         return matchRoles.getFirst();
     }

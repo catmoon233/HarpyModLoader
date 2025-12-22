@@ -34,18 +34,23 @@ public class ModifierArgumentType implements ArgumentType<Modifier> {
 
     @Override
     public Modifier parse(final StringReader reader) throws CommandSyntaxException {
-        final Identifier modifierId = Identifier.fromCommandInput(reader);
+        String input = new StringReader(reader).readString();
+        Identifier modifierId = null;
+        try {
+            modifierId = Identifier.fromCommandInput(reader);
+        } catch (CommandSyntaxException ignored) {
+        }
         List<Modifier> result = new ArrayList<>();
         for (final Modifier modifier : HMLModifiers.MODIFIERS) {
-            if (modifier.identifier().equals(modifierId)) {
+            if (modifier.identifier().equals(modifierId) || modifier.identifier().getPath().startsWith(input)) {
                 result.add(modifier);
             }
         }
         if (result.isEmpty()) {
-            throw MODIFIER_EMPTY.create(modifierId);
+            throw MODIFIER_EMPTY.create(input);
         }
         if (result.size() > 1) {
-            throw MODIFIER_MULTIPLE.create(modifierId);
+            throw MODIFIER_MULTIPLE.create(input);
         }
         return result.getFirst();
     }
