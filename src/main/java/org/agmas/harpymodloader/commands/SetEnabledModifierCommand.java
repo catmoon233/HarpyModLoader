@@ -8,7 +8,6 @@ import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.HoverEvent;
-import net.minecraft.text.Style;
 import net.minecraft.text.Text;
 import org.agmas.harpymodloader.commands.argument.ModifierArgumentType;
 import org.agmas.harpymodloader.config.HarpyModLoaderConfig;
@@ -35,7 +34,7 @@ public class SetEnabledModifierCommand {
         HarpyModLoaderConfig.HANDLER.save();
         final String modifierId = modifier.identifier().toString();
         boolean disabled = HarpyModLoaderConfig.HANDLER.instance().disabledModifiers.contains(modifierId);
-        Text modifierName = modifier.getName(true).setStyle(Style.EMPTY.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal(modifierId))));
+        Text modifierName = modifier.getName(true).styled(style -> style.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal(modifierId))));
 
         if (disabled && enabled) {
             HarpyModLoaderConfig.HANDLER.instance().disabledModifiers.remove(modifierId);

@@ -8,7 +8,6 @@ import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.ClickEvent;
 import net.minecraft.text.HoverEvent;
 import net.minecraft.text.MutableText;
-import net.minecraft.text.Style;
 import net.minecraft.text.Text;
 import net.minecraft.text.Texts;
 import net.minecraft.util.Identifier;
@@ -48,6 +47,6 @@ public class ListRolesCommand {
 
     private static MutableText createStatus(boolean disabled, String cmd) {
         String key = disabled ? "disabled" : "enabled";
-        return Text.translatable("commands.listroles.status." + key + ".text").setStyle(Style.EMPTY.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.translatable("commands.listroles.status." + key + ".hover", cmd))).withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, cmd)));
+        return Text.translatable("commands.listroles.status." + key + ".text").styled(style-> style.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.translatable("commands.listroles.status." + key + ".hover", cmd))).withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, cmd)));
     }
 }
