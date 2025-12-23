@@ -150,7 +150,7 @@ public class ModdedMurderGameMode extends MurderGameMode {
         for (ServerPlayerEntity player : players) {
             if (!worldModifierComponent.getModifiers(player).isEmpty()) {
                 MutableText modifiersText = Text.translatable("announcement.modifier").formatted(Formatting.GRAY)
-                        .append(Texts.join(worldModifierComponent.getModifiers(player), Text.literal(", "), modifier -> modifier.getName(true)));
+                        .append(Texts.join(worldModifierComponent.getModifiers(player), Text.literal(", "), modifier -> modifier.getName(false).withColor(modifier.color)));
                 player.sendMessage(modifiersText, true);
             } else {
                 if (!HMLModifiers.MODIFIERS.isEmpty()) {

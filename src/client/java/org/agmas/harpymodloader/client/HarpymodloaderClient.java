@@ -7,6 +7,8 @@ import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import java.util.ArrayList;
+
+import net.minecraft.util.Language;
 import org.agmas.harpymodloader.Harpymodloader;
 import org.agmas.harpymodloader.modifiers.Modifier;
 
@@ -24,9 +26,5 @@ public class HarpymodloaderClient implements ClientModInitializer {
         ClientTickEvents.END_CLIENT_TICK.register((t) -> {
             rainbowRoleTime += 1;
         });
-    }
-
-    public static MutableText getRoleName(Role role) {
-        return Text.translatable("announcement.role." + role.identifier().toTranslationKey());
     }
 }

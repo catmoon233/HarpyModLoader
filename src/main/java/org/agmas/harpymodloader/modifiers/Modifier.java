@@ -1,9 +1,13 @@
 package org.agmas.harpymodloader.modifiers;
 
 import dev.doctor4t.wathe.api.Role;
+import net.fabricmc.loader.impl.util.log.Log;
+import net.fabricmc.loader.impl.util.log.LogCategory;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.Language;
+
 import java.util.ArrayList;
 
 public class Modifier {
@@ -33,6 +37,10 @@ public class Modifier {
     }
 
     public MutableText getName(boolean color) {
+        Log.info(LogCategory.GENERAL, Language.getInstance().hasTranslation("announcement.modifier." + identifier().getPath())+"");
+        if (!Language.getInstance().hasTranslation("announcement.modifier." + identifier().toTranslationKey()) && Language.getInstance().hasTranslation("announcement.modifier." + identifier().getPath())) {
+            return Text.translatable("announcement.modifier." + identifier().getPath());
+        }
         final MutableText text = Text.translatable("announcement.modifier." + identifier().toTranslationKey());
         if (color) {
             return text.withColor(color());

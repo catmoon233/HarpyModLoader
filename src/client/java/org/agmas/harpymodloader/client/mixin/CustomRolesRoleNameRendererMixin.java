@@ -12,6 +12,7 @@ import net.minecraft.client.render.RenderTickCounter;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
+import org.agmas.harpymodloader.Harpymodloader;
 import org.agmas.harpymodloader.client.HarpymodloaderClient;
 import org.agmas.harpymodloader.component.HarpyModLoaderComponents;
 import org.agmas.harpymodloader.component.WorldModifierComponent;
@@ -33,7 +34,7 @@ public abstract class CustomRolesRoleNameRendererMixin {
          GameWorldComponent gameWorldComponent = (GameWorldComponent) GameWorldComponent.KEY.get(player.getWorld());
          if (HarpymodloaderClient.hudRole != null) {
              if (WatheClient.isPlayerSpectatingOrCreative()) {
-                 MutableText name = HarpymodloaderClient.getRoleName(HarpymodloaderClient.hudRole);
+                 MutableText name = Harpymodloader.getRoleName(HarpymodloaderClient.hudRole);
                  WorldModifierComponent worldModifierComponent = WorldModifierComponent.KEY.get(player.getWorld());
                  if (HarpymodloaderClient.modifiers != null) {
                      for (Modifier modifier : HarpymodloaderClient.modifiers) {
