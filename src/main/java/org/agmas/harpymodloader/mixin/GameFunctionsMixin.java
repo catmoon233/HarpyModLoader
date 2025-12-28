@@ -1,8 +1,8 @@
 package org.agmas.harpymodloader.mixin;
 
-import dev.doctor4t.trainmurdermystery.api.TMMGameModes;
-import dev.doctor4t.trainmurdermystery.cca.GameWorldComponent;
-import dev.doctor4t.trainmurdermystery.game.GameFunctions;
+import dev.doctor4t.wathe.api.WatheGameModes;
+import dev.doctor4t.wathe.cca.GameWorldComponent;
+import dev.doctor4t.wathe.game.GameFunctions;
 import net.minecraft.server.world.ServerWorld;
 import org.agmas.harpymodloader.Harpymodloader;
 import org.spongepowered.asm.mixin.Mixin;
@@ -15,7 +15,7 @@ public class GameFunctionsMixin {
     @Inject(method = "initializeGame", at = @At("HEAD"))
     private static void a(ServerWorld serverWorld, CallbackInfo ci) {
         GameWorldComponent gameComponent = (GameWorldComponent)GameWorldComponent.KEY.get(serverWorld);
-        if (gameComponent.getGameMode().equals(TMMGameModes.MURDER) && !Harpymodloader.wantsToStartVannila) {
+        if (gameComponent.getGameMode().equals(WatheGameModes.MURDER) && !Harpymodloader.wantsToStartVannila) {
             gameComponent.setGameMode(Harpymodloader.MODDED_GAMEMODE);
         }
         Harpymodloader.wantsToStartVannila = false;

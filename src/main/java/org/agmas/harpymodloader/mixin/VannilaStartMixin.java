@@ -1,10 +1,11 @@
 package org.agmas.harpymodloader.mixin;
 
-import dev.doctor4t.trainmurdermystery.api.GameMode;
-import dev.doctor4t.trainmurdermystery.api.TMMGameModes;
-import dev.doctor4t.trainmurdermystery.cca.AutoStartComponent;
-import dev.doctor4t.trainmurdermystery.cca.GameWorldComponent;
-import dev.doctor4t.trainmurdermystery.command.StartCommand;
+import dev.doctor4t.wathe.api.GameMode;
+import dev.doctor4t.wathe.api.MapEffect;
+import dev.doctor4t.wathe.api.WatheGameModes;
+import dev.doctor4t.wathe.cca.AutoStartComponent;
+import dev.doctor4t.wathe.cca.GameWorldComponent;
+import dev.doctor4t.wathe.command.StartCommand;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.world.World;
 import org.agmas.harpymodloader.Harpymodloader;
@@ -20,7 +21,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public class VannilaStartMixin {
 
     @Inject(method = "execute", at = @At("HEAD"))
-    private static void a(ServerCommandSource source, GameMode gameMode, int minutes, CallbackInfoReturnable<Integer> cir) {
-        if (gameMode.equals(TMMGameModes.MURDER)) Harpymodloader.wantsToStartVannila = true;
+    private static void a(ServerCommandSource source, GameMode gameMode, MapEffect mapEffect, int minutes, CallbackInfoReturnable<Integer> cir) {
+        if (gameMode.equals(WatheGameModes.MURDER)) Harpymodloader.wantsToStartVannila = true;
      }
 }

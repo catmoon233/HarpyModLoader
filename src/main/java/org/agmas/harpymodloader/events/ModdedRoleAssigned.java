@@ -1,6 +1,6 @@
 package org.agmas.harpymodloader.events;
 
-import dev.doctor4t.trainmurdermystery.api.Role;
+import dev.doctor4t.wathe.api.Role;
 import net.fabricmc.fabric.api.event.Event;
 import net.minecraft.entity.player.PlayerEntity;
 

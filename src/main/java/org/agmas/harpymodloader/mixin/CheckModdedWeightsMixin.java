@@ -1,9 +1,9 @@
 package org.agmas.harpymodloader.mixin;
 
-import dev.doctor4t.trainmurdermystery.api.Role;
-import dev.doctor4t.trainmurdermystery.api.TMMRoles;
-import dev.doctor4t.trainmurdermystery.cca.ScoreboardRoleSelectorComponent;
-import dev.doctor4t.trainmurdermystery.client.gui.RoleAnnouncementTexts;
+import dev.doctor4t.wathe.api.Role;
+import dev.doctor4t.wathe.api.WatheRoles;
+import dev.doctor4t.wathe.cca.ScoreboardRoleSelectorComponent;
+import dev.doctor4t.wathe.client.gui.RoleAnnouncementTexts;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.MutableText;
@@ -28,7 +28,7 @@ public class CheckModdedWeightsMixin {
 
         HashMap<Role, Double> roleTotals = new HashMap<>();
 
-        for (Role role : TMMRoles.ROLES) {
+        for (Role role : WatheRoles.ROLES) {
             if (Harpymodloader.SPECIAL_ROLES.contains(role)) continue;
             for (ServerPlayerEntity player : source.getWorld().getPlayers()) {
                 if (!roleTotals.containsKey(role)) roleTotals.put(role, 0.0);
@@ -41,7 +41,7 @@ public class CheckModdedWeightsMixin {
 
         for(ServerPlayerEntity player : source.getWorld().getPlayers()) {
             text = text.append("\n").append(player.getDisplayName());
-            for (Role role : TMMRoles.ROLES) {
+            for (Role role : WatheRoles.ROLES) {
                 if (Harpymodloader.SPECIAL_ROLES.contains(role)) continue;
                 Integer roleRounds = ModdedWeights.roleRounds.get(role).getOrDefault(player.getUuid(), 0);
                 double roleWeight = Math.exp((-roleRounds * 4));

@@ -4,9 +4,10 @@
   "package": "org.agmas.harpymodloader.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
-    "VannilaStartMixin",
     "CheckModdedWeightsMixin",
-    "GameFunctionsMixin"
+    "GameFunctionsMixin",
+    "ModifierAndRoleResetMixin",
+    "VannilaStartMixin"
   ],
   "injectors": {
     "defaultRequire": 1

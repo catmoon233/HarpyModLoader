@@ -19,7 +19,16 @@ public class HarpyModLoaderConfig {
                     .build())
             .build();
 
-    @SerialEntry(comment = "Disables roles from being in the role pool. use /listRoles to get role names, use /enableRoles to ban/unban them in-game (saves here).")
+    @SerialEntry(comment = "Disables roles from being in the role pool. use /listRoles to get role names, use /setEnabledRole to ban/unban them in-game (saves here).")
     public ArrayList<String> disabled = new ArrayList<>();
+
+    @SerialEntry(comment = "Which Modifiers should be disabled. Modifiers also show up in /listRoles and /setEnabledModifier.")
+    public ArrayList<String> disabledModifiers = new ArrayList<>();
+
+    @SerialEntry(comment = "Maximum amount of modifiers a player can have.")
+    public int modifierMaximum = 1;
+
+    @SerialEntry(comment = "How many modifiers should be given relative to the Killer Dividend")
+    public int modifierMultiplier = 1;
 
 }
