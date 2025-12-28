@@ -1,10 +1,12 @@
 package org.agmas.harpymodloader.client.mixin;
 
 import com.llamalad7.mixinextras.sugar.Local;
-import dev.doctor4t.wathe.api.WatheRoles;
-import dev.doctor4t.wathe.cca.GameWorldComponent;
-import dev.doctor4t.wathe.client.WatheClient;
-import dev.doctor4t.wathe.client.gui.RoleNameRenderer;
+
+import dev.doctor4t.trainmurdermystery.api.TMMRoles;
+import dev.doctor4t.trainmurdermystery.cca.GameWorldComponent;
+
+import dev.doctor4t.trainmurdermystery.client.TMMClient;
+import dev.doctor4t.trainmurdermystery.client.gui.RoleNameRenderer;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.network.ClientPlayerEntity;
@@ -33,7 +35,7 @@ public abstract class CustomRolesRoleNameRendererMixin {
     private static void b(TextRenderer renderer, ClientPlayerEntity player, DrawContext context, RenderTickCounter tickCounter, CallbackInfo ci) {
          GameWorldComponent gameWorldComponent = (GameWorldComponent) GameWorldComponent.KEY.get(player.getWorld());
          if (HarpymodloaderClient.hudRole != null) {
-             if (WatheClient.isPlayerSpectatingOrCreative()) {
+             if (TMMClient.isPlayerSpectatingOrCreative()) {
                  MutableText name = Harpymodloader.getRoleName(HarpymodloaderClient.hudRole);
                  WorldModifierComponent worldModifierComponent = WorldModifierComponent.KEY.get(player.getWorld());
                  if (HarpymodloaderClient.modifiers != null) {
@@ -54,7 +56,7 @@ public abstract class CustomRolesRoleNameRendererMixin {
             HarpymodloaderClient.hudRole = gameWorldComponent.getRole(target);
             HarpymodloaderClient.modifiers = worldModifierComponent.getModifiers(target);
         } else {
-            HarpymodloaderClient.hudRole = WatheRoles.CIVILIAN;
+            HarpymodloaderClient.hudRole = TMMRoles.CIVILIAN;
             HarpymodloaderClient.modifiers = null;
         }
     }

@@ -8,8 +8,9 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.DynamicCommandExceptionType;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
-import dev.doctor4t.wathe.api.Role;
-import dev.doctor4t.wathe.api.WatheRoles;
+
+import dev.doctor4t.trainmurdermystery.api.Role;
+import dev.doctor4t.trainmurdermystery.api.TMMRoles;
 import net.minecraft.command.CommandRegistryAccess;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.argument.serialize.ArgumentSerializer;
@@ -60,7 +61,7 @@ public class RoleArgumentType implements ArgumentType<Role> {
         } catch (CommandSyntaxException ignored) {
         }
         List<Role> matchRoles = new ArrayList<>();
-        for (final Role role : WatheRoles.ROLES) {
+        for (final Role role : TMMRoles.ROLES) {
             if (skipVanilla && Harpymodloader.VANNILA_ROLES.contains(role)) {
                 continue;
             }
@@ -80,7 +81,7 @@ public class RoleArgumentType implements ArgumentType<Role> {
     @Override
     public <S> CompletableFuture<Suggestions> listSuggestions(final CommandContext<S> context, final SuggestionsBuilder builder) {
         return CommandSource.suggestFromIdentifier(
-                WatheRoles.ROLES.stream().filter(role -> !skipVanilla || !Harpymodloader.VANNILA_ROLES.contains(role)),
+                TMMRoles.ROLES.stream().filter(role -> !skipVanilla || !Harpymodloader.VANNILA_ROLES.contains(role)),
                 builder,
                 Role::identifier,
                 Harpymodloader::getRoleName

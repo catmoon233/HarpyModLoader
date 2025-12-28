@@ -1,6 +1,7 @@
 package org.agmas.harpymodloader.modifiers;
 
-import dev.doctor4t.wathe.api.Role;
+
+import dev.doctor4t.trainmurdermystery.api.Role;
 import net.fabricmc.loader.impl.util.log.Log;
 import net.fabricmc.loader.impl.util.log.LogCategory;
 import net.minecraft.text.MutableText;

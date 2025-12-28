@@ -2,7 +2,8 @@ package org.agmas.harpymodloader.commands;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
-import dev.doctor4t.wathe.api.WatheRoles;
+
+import dev.doctor4t.trainmurdermystery.api.TMMRoles;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.ClickEvent;
@@ -24,7 +25,7 @@ public class ListRolesCommand {
         HarpyModLoaderConfig.HANDLER.save();
         final MutableText message = Text.empty();
         message.append(Text.translatable("commands.listroles.role.title")).append("\n");
-        message.append(Texts.join(WatheRoles.ROLES, Text.literal("\n"), role -> {
+        message.append(Texts.join(TMMRoles.ROLES, Text.literal("\n"), role -> {
             final boolean disabled = HarpyModLoaderConfig.HANDLER.instance().disabled.contains(role.identifier().toString());
             final MutableText status = createStatus(context.getSource(), disabled, "/setEnabledRole " + role.identifier() + " " + disabled);
             return buildElementText(Harpymodloader.getRoleName(role).withColor(role.color()), role.identifier(), status);

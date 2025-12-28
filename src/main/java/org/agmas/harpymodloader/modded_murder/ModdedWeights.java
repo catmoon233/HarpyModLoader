@@ -1,6 +1,8 @@
 package org.agmas.harpymodloader.modded_murder;
 
-import dev.doctor4t.wathe.api.Role;
+
+
+import dev.doctor4t.trainmurdermystery.api.Role;
 
 import java.util.HashMap;
 import java.util.Map;

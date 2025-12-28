@@ -5,6 +5,7 @@
   "compatibilityLevel": "JAVA_21",
   "mixins": [
     "CheckModdedWeightsMixin",
+    "CollisionMixin",
     "GameFunctionsMixin",
     "ModifierAndRoleResetMixin",
     "VannilaStartMixin"

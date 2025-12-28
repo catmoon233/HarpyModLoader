@@ -1,9 +1,9 @@
 package org.agmas.harpymodloader.client.mixin;
 
-import dev.doctor4t.wathe.api.Role;
-import dev.doctor4t.wathe.cca.GameWorldComponent;
-import dev.doctor4t.wathe.client.gui.RoleAnnouncementTexts;
-import dev.doctor4t.wathe.game.GameFunctions;
+import dev.doctor4t.trainmurdermystery.api.Role;
+import dev.doctor4t.trainmurdermystery.cca.GameWorldComponent;
+import dev.doctor4t.trainmurdermystery.client.gui.RoleAnnouncementTexts;
+import dev.doctor4t.trainmurdermystery.game.GameFunctions;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.text.Text;
 import org.agmas.harpymodloader.Harpymodloader;

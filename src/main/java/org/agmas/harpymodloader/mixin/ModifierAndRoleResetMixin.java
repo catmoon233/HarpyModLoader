@@ -1,8 +1,8 @@
 package org.agmas.harpymodloader.mixin;
 
-import dev.doctor4t.wathe.api.WatheGameModes;
-import dev.doctor4t.wathe.cca.GameWorldComponent;
-import dev.doctor4t.wathe.game.GameFunctions;
+
+import dev.doctor4t.trainmurdermystery.cca.GameWorldComponent;
+import dev.doctor4t.trainmurdermystery.game.GameFunctions;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import org.agmas.harpymodloader.Harpymodloader;

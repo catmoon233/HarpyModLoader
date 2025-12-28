@@ -1,6 +1,6 @@
 package org.agmas.harpymodloader.client;
 
-import dev.doctor4t.wathe.api.Role;
+import dev.doctor4t.trainmurdermystery.api.Role;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;

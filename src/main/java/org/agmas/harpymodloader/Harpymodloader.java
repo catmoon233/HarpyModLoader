@@ -1,10 +1,11 @@
 package org.agmas.harpymodloader;
 
-import dev.doctor4t.wathe.api.GameMode;
-import dev.doctor4t.wathe.api.Role;
-import dev.doctor4t.wathe.api.WatheGameModes;
-import dev.doctor4t.wathe.api.WatheRoles;
-import dev.doctor4t.wathe.client.gui.RoleAnnouncementTexts;
+
+import dev.doctor4t.trainmurdermystery.api.GameMode;
+import dev.doctor4t.trainmurdermystery.api.Role;
+import dev.doctor4t.trainmurdermystery.api.TMMGameModes;
+import dev.doctor4t.trainmurdermystery.api.TMMRoles;
+import dev.doctor4t.trainmurdermystery.client.gui.RoleAnnouncementTexts;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.ArgumentTypeRegistry;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
@@ -59,25 +60,25 @@ public class Harpymodloader implements ModInitializer {
     @Override
     public void onInitialize() {
         HarpyModLoaderConfig.HANDLER.load();
-        VANNILA_ROLES.add(WatheRoles.LOOSE_END);
-        VANNILA_ROLES.add(WatheRoles.CIVILIAN);
-        VANNILA_ROLES.add(WatheRoles.KILLER);
-        VANNILA_ROLES.add(WatheRoles.VIGILANTE);
-        VANNILA_ROLES.add(WatheRoles.DISCOVERY_CIVILIAN);
+        VANNILA_ROLES.add(TMMRoles.LOOSE_END);
+        VANNILA_ROLES.add(TMMRoles.CIVILIAN);
+        VANNILA_ROLES.add(TMMRoles.KILLER);
+        VANNILA_ROLES.add(TMMRoles.VIGILANTE);
+        VANNILA_ROLES.add(TMMRoles.DISCOVERY_CIVILIAN);
 
-        SPECIAL_ROLES.add(WatheRoles.LOOSE_END);
-        SPECIAL_ROLES.add(WatheRoles.DISCOVERY_CIVILIAN);
-        SPECIAL_ROLES.add(WatheRoles.CIVILIAN); // civilian is considered special since it can't be assigned, just given out to everyone
+        SPECIAL_ROLES.add(TMMRoles.LOOSE_END);
+        SPECIAL_ROLES.add(TMMRoles.DISCOVERY_CIVILIAN);
+        SPECIAL_ROLES.add(TMMRoles.CIVILIAN); // civilian is considered special since it can't be assigned, just given out to everyone
 
-        OVERWRITE_ROLES.add(WatheRoles.CIVILIAN);
-        OVERWRITE_ROLES.add(WatheRoles.KILLER);
+        OVERWRITE_ROLES.add(TMMRoles.CIVILIAN);
+        OVERWRITE_ROLES.add(TMMRoles.KILLER);
 
         ModdedWeights.init();
 
         registerCommands();
         HMLModifiers.init();
 
-        MODDED_GAMEMODE = WatheGameModes.registerGameMode(Identifier.of(MOD_ID, "modded"), new ModdedMurderGameMode(Identifier.of(MOD_ID, "modded")));
+        MODDED_GAMEMODE = TMMGameModes.registerGameMode(Identifier.of(MOD_ID, "modded"), new ModdedMurderGameMode(Identifier.of(MOD_ID, "modded")));
 
         ServerLifecycleEvents.SERVER_STARTED.register((minecraftServer -> {
             refreshRoles();
@@ -88,7 +89,7 @@ public class Harpymodloader implements ModInitializer {
     // re-indexes roles
     //
     public static void refreshRoles() {
-        for (Role role : WatheRoles.ROLES) {
+        for (Role role : TMMRoles.ROLES) {
             if (SPECIAL_ROLES.contains(role)) continue;
             if (!ModdedWeights.roleRounds.containsKey(role)) {
                 ModdedWeights.roleRounds.put(role, new HashMap<>());
