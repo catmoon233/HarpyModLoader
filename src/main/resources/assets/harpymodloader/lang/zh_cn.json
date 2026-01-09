@@ -23,6 +23,17 @@
   "commands.listroles.status.disabled.text": "§c[已禁用]",
   "commands.listroles.status.disabled.hover": "§a点击切换至启用状态\n%s",
 
+
+  "commands.setrolecount.killer.set": "杀手数量已设置为 %s",
+  "commands.setrolecount.killer.auto": "杀手数量已设置为自动计算",
+  "commands.setrolecount.detective.set": "侦探数量已设置为 %s",
+  "commands.setrolecount.detective.auto": "侦探数量已设置为自动计算",
+  "commands.setrolecount.reset": "杀手和侦探数量已重置为自动计算",
+
+  "commands.changerole.success.changed": "已将玩家 %3$s 的角色从 %1$s 更改为 %2$s",
+  "commands.changerole.success.assigned": "已将玩家 %2$s 的角色设置为 %1$s",
+  "commands.changerole.player.notification": "您的角色已更改为 %1$s",
+
   "announcement.modifier": "附加词条 ",
   "announcement.no_modifiers": "没有附加词条"
 }

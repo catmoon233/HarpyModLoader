@@ -23,11 +23,13 @@ import java.util.List;
 import java.util.UUID;
 
 import net.minecraft.util.Language;
+import org.agmas.harpymodloader.commands.ChangeRoleCommand;
 import org.agmas.harpymodloader.commands.ForceModifierCommand;
 import org.agmas.harpymodloader.commands.ForceRoleCommand;
 import org.agmas.harpymodloader.commands.ListRolesCommand;
 import org.agmas.harpymodloader.commands.SetEnabledModifierCommand;
 import org.agmas.harpymodloader.commands.SetEnabledRoleCommand;
+import org.agmas.harpymodloader.commands.SetRoleCountCommand;
 import org.agmas.harpymodloader.commands.argument.ModifierArgumentType;
 import org.agmas.harpymodloader.commands.argument.RoleArgumentType;
 import org.agmas.harpymodloader.config.HarpyModLoaderConfig;
@@ -143,6 +145,8 @@ public class Harpymodloader implements ModInitializer {
             ListRolesCommand.register(dispatcher);
             ForceModifierCommand.register(dispatcher);
             SetEnabledModifierCommand.register(dispatcher);
+            SetRoleCountCommand.register(dispatcher);
+            ChangeRoleCommand.register(dispatcher);
         });
     }
 

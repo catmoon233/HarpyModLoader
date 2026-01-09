@@ -34,6 +34,7 @@ import org.agmas.harpymodloader.config.HarpyModLoaderConfig;
 import org.agmas.harpymodloader.events.ModdedRoleAssigned;
 import org.agmas.harpymodloader.events.ModifierAssigned;
 import org.agmas.harpymodloader.events.ResetPlayerEvent;
+import org.agmas.harpymodloader.commands.SetRoleCountCommand;
 import org.agmas.harpymodloader.modifiers.HMLModifiers;
 import org.agmas.harpymodloader.modifiers.Modifier;
 import org.jetbrains.annotations.NotNull;
@@ -148,7 +149,7 @@ public class ModdedMurderGameMode extends MurderGameMode {
             int specificDesiredRoleCount = desiredRoleCount;
 
             if (mod.killerOnly) {
-                specificDesiredRoleCount = (int) Math.floor(Math.floor((double) players.size() / 6) / killerMods);
+                specificDesiredRoleCount = (int) Math.floor(Math.floor((double) players.size() / 7) / killerMods);
                 specificDesiredRoleCount = Math.max(specificDesiredRoleCount, 1);
             }
 
@@ -254,7 +255,7 @@ public class ModdedMurderGameMode extends MurderGameMode {
         Collections.shuffle(shuffledCivillianRoles);
         Collections.shuffle(shuffledNeutralRoles);
 
-        int neutralDesiredRoleCount = (int)Math.floor(((float)players.size() / 6));
+        int baseCount = players.size() / 5;  // 整数除法自动向下取整
         int assignedNeutralRoles = 0;
         int neutralRoleCount = 0;
 
@@ -269,7 +270,7 @@ public class ModdedMurderGameMode extends MurderGameMode {
             if (HarpyModLoaderConfig.HANDLER.instance().disabled.contains(role.identifier().toString())) {
                 continue;
             }
-            if (assignedNeutralRoles >= neutralDesiredRoleCount) {
+            if (assignedNeutralRoles >= baseCount) {
                 continue;
             }
             int roleSpecificDesireCount = Math.min((int) Math.ceil((double) playersForCivillianRoles.size() / neutralRoleCount), desiredRoleCount);
@@ -411,8 +412,8 @@ public class ModdedMurderGameMode extends MurderGameMode {
     public int assignVannilaRoles(ServerWorld serverWorld, GameWorldComponent gameWorldComponent, List<ServerPlayerEntity> players) {
         ScoreboardRoleSelectorComponent roleSelector = ScoreboardRoleSelectorComponent.KEY.get(serverWorld.getScoreboard());
 
-        int killerCount = (int)Math.floor(((float)players.size() / 6));
-        int vigilanteCount = (int)Math.floor(((float)players.size() / 6));
+        int killerCount = SetRoleCountCommand.getKillerCount(players.size());
+        int vigilanteCount = SetRoleCountCommand.getVigilanteCount(players.size());
 
         List<ServerPlayerEntity> playersForVigilante = new ArrayList<>(players);
         playersForVigilante.removeIf(player -> Harpymodloader.FORCED_MODDED_ROLE_FLIP.containsKey(player.getUuid()));
