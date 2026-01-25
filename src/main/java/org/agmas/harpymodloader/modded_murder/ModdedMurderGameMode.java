@@ -82,9 +82,9 @@ public class ModdedMurderGameMode extends MurderGameMode {
         // 创建角色分配映射表
         Map<ServerPlayerEntity, Role> roleAssignments = new HashMap<>();
         
-        // 首先给所有玩家分配平民角色
+        // 初始化角色分配映射，但不预先分配任何角色
         for(ServerPlayerEntity player : players) {
-            roleAssignments.put(player, TMMRoles.CIVILIAN);
+            roleAssignments.put(player, null); // 使用null表示尚未分配角色
         }
 
         int roleCount = assignVannilaRoles(serverWorld,gameWorldComponent,players, roleAssignments);
@@ -100,14 +100,17 @@ public class ModdedMurderGameMode extends MurderGameMode {
         for(Map.Entry<ServerPlayerEntity, Role> entry : roleAssignments.entrySet()) {
             final var key = entry.getKey();
             final var value = entry.getValue();
-            gameWorldComponent.addRole(key, value);
-            // 如果不是初始的平民角色，则触发模组化角色分配事件
-            if (!value.equals(TMMRoles.CIVILIAN)) {
+            if (value != null) { // 只有当角色不为null时才分配
+                gameWorldComponent.addRole(key, value);
+                // 触发模组化角色分配事件
                 ModdedRoleAssigned.EVENT.invoker().assignModdedRole(key, value);
                 value.onInit(key.getServer(), key);
                 value.getDefaultItems().forEach(
                         item ->  key.getInventory().offerOrDrop(item)
                 );
+            } else {
+                // 如果没有分配角色，则分配默认平民角色
+                gameWorldComponent.addRole(key, TMMRoles.CIVILIAN);
             }
         }
 
