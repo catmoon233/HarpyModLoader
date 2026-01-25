@@ -28,7 +28,7 @@ public class CheckModdedWeightsMixin {
 
         HashMap<Role, Double> roleTotals = new HashMap<>();
 
-        for (Role role : TMMRoles.ROLES) {
+        for (Role role : TMMRoles.ROLES.values()) {
             if (Harpymodloader.SPECIAL_ROLES.contains(role)) continue;
             for (ServerPlayerEntity player : source.getWorld().getPlayers()) {
                 if (!roleTotals.containsKey(role)) roleTotals.put(role, 0.0);
@@ -41,7 +41,7 @@ public class CheckModdedWeightsMixin {
 
         for(ServerPlayerEntity player : source.getWorld().getPlayers()) {
             text = text.append("\n").append(player.getDisplayName());
-            for (Role role : TMMRoles.ROLES) {
+            for (Role role : TMMRoles.ROLES.values()) {
                 if (Harpymodloader.SPECIAL_ROLES.contains(role)) continue;
                 Integer roleRounds = ModdedWeights.roleRounds.get(role).getOrDefault(player.getUuid(), 0);
                 double roleWeight = Math.exp((-roleRounds * 4));

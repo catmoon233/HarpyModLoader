@@ -6,6 +6,7 @@ import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtHelper;
 import net.minecraft.nbt.NbtList;
 import net.minecraft.registry.RegistryWrapper;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
 import net.minecraft.world.World;
 import java.util.ArrayList;
@@ -28,13 +29,15 @@ public class WorldModifierComponent implements AutoSyncedComponent, ServerTickin
     public HashMap<UUID, ArrayList<Modifier>> modifiers = new HashMap<>();
 
 
+
+
     public WorldModifierComponent(World world) {
         this.world = world;
     }
 
     @Override
     public void serverTick() {
-        sync();
+
     }
 
     @Deprecated
@@ -64,12 +67,13 @@ public class WorldModifierComponent implements AutoSyncedComponent, ServerTickin
     }
 
     public ArrayList<Modifier> getModifiers(UUID uuid) {
+
         if (!modifiers.containsKey(uuid)) modifiers.put(uuid, new ArrayList<>());
         return this.modifiers.get(uuid);
     }
 
     public List<UUID> getAllWithModifier(Modifier modifier) {
-        List<UUID> ret = new ArrayList();
+        List<UUID> ret = new ArrayList<>();
         this.modifiers.forEach((uuid, playerModifier) -> {
             if (playerModifier.contains(modifier)) {
                 ret.add(uuid);
@@ -82,12 +86,14 @@ public class WorldModifierComponent implements AutoSyncedComponent, ServerTickin
 
         for (UUID player : players) {
             addModifier(player, modifier);
+            this.sync();
         }
 
     }
 
     public void addModifier(UUID player, Modifier modifier) {
         getModifiers(player).add(modifier);
+        this.sync();
     }
 
 
