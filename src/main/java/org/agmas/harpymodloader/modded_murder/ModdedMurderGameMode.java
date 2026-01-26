@@ -283,8 +283,15 @@ public class ModdedMurderGameMode extends MurderGameMode {
         ArrayList<ServerPlayerEntity> playersForCivillianRoles = new ArrayList<>(players);
         playersForCivillianRoles.removeIf(player -> {
             Role role = roleAssignments.getOrDefault(player, null);
-            return (role != null)
-                    && (!Harpymodloader.OVERWRITE_ROLES.contains(role) || role.canUseKiller() || !role.isInnocent());
+            if (role == null)
+                return false; // 没职业
+            if (!Harpymodloader.OVERWRITE_ROLES.contains(role))
+                return true; // 这家伙不能分配职业
+            if (role.canUseKiller())
+                return true; // 杀手不要给职业
+            if (!role.isInnocent())
+                return true; // 杀手不要给职业
+            return false;
         });
 
         Collections.shuffle(shuffledCivillianRoles);
@@ -311,7 +318,11 @@ public class ModdedMurderGameMode extends MurderGameMode {
                     gameWorldComponent, serverWorld, roleAssignments);
             playersForCivillianRoles.removeIf(player -> {
                 Role role1 = roleAssignments.getOrDefault(player, null);
-                return role1 != null && !Harpymodloader.OVERWRITE_ROLES.contains(role1);
+                if (role1 == null)
+                    return false;
+                if (!Harpymodloader.OVERWRITE_ROLES.contains(role1))
+                    return true;
+                return false;
             });
         }
 
@@ -329,7 +340,11 @@ public class ModdedMurderGameMode extends MurderGameMode {
                     serverWorld, roleAssignments);
             playersForCivillianRoles.removeIf(player -> {
                 Role role1 = roleAssignments.getOrDefault(player, null);
-                return role1 != null && !Harpymodloader.OVERWRITE_ROLES.contains(role1);
+                if (role1 == null)
+                    return false;
+                if (!Harpymodloader.OVERWRITE_ROLES.contains(role1))
+                    return true;
+                return false;
             });
         }
     }
@@ -341,16 +356,24 @@ public class ModdedMurderGameMode extends MurderGameMode {
         // shuffle roles so modded roles are different every time
         ArrayList<Role> shuffledKillerRoles = new ArrayList<>(TMMRoles.ROLES.values());
         // 从杀手角色中排除CIVILIAN
-        shuffledKillerRoles.removeIf(role -> Harpymodloader.VANNILA_ROLES.contains(role) || !role.canUseKiller() || role.isInnocent()
-                || role == TMMRoles.CIVILIAN
-                || HarpyModLoaderConfig.HANDLER.instance().disabled.contains(role.identifier().toString()));
+        shuffledKillerRoles.removeIf(
+                role -> Harpymodloader.VANNILA_ROLES.contains(role) || !role.canUseKiller() || role.isInnocent()
+                        || role == TMMRoles.CIVILIAN
+                        || HarpyModLoaderConfig.HANDLER.instance().disabled.contains(role.identifier().toString()));
         ArrayList<ServerPlayerEntity> playersForKillerRoles = new ArrayList<>(players);
         playersForKillerRoles.removeIf(player -> {
             Role role = roleAssignments.getOrDefault(player, null);
-            return role == null || !Harpymodloader.OVERWRITE_ROLES.contains(role) || !role.canUseKiller();
+            if (role == null)
+                return true;
+            if (!Harpymodloader.OVERWRITE_ROLES.contains(role))
+                return true;
+            if (role.canUseKiller())
+                return false;
+            if (role.isInnocent())
+                return true;
+            return false;
         });
 
-        Collections.shuffle(shuffledKillerRoles);
         Collections.shuffle(shuffledKillerRoles);
         Collections.shuffle(shuffledKillerRoles);
 
@@ -366,7 +389,11 @@ public class ModdedMurderGameMode extends MurderGameMode {
                     roleAssignments);
             playersForKillerRoles.removeIf(player -> {
                 Role role1 = roleAssignments.getOrDefault(player, null);
-                return role1 != null && !Harpymodloader.OVERWRITE_ROLES.contains(role1);
+                if (role1 == null)
+                    return true;
+                if (Harpymodloader.OVERWRITE_ROLES.contains(role))
+                    return false;
+                return true;
             });
         }
     }
@@ -417,9 +444,9 @@ public class ModdedMurderGameMode extends MurderGameMode {
         for (int i = 0; i < desiredRoleCount && !players.isEmpty(); ++i) {
             int randomIdx = random.nextInt(players.size());
             ServerPlayerEntity selectedPlayer = players.get(randomIdx);
+            players.remove(randomIdx);
             if (selectedPlayer != null) {
                 assignedPlayers.add(selectedPlayer);
-
                 // // 更新角色轮次计数
                 // ModdedWeights.roleRounds.get(role).put(selectedPlayer.getUuid(),
                 // ModdedWeights.roleRounds.get(role).getOrDefault(selectedPlayer.getUuid(), 1)
