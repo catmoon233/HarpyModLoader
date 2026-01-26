@@ -340,11 +340,10 @@ public class ModdedMurderGameMode extends MurderGameMode {
 
         // shuffle roles so modded roles are different every time
         ArrayList<Role> shuffledKillerRoles = new ArrayList<>(TMMRoles.ROLES.values());
-        // 从杀手角色中排除CIVILIAN（其实不需要）
-        shuffledKillerRoles.removeIf(role -> Harpymodloader.VANNILA_ROLES.contains(role) || !role.canUseKiller()
+        // 从杀手角色中排除CIVILIAN
+        shuffledKillerRoles.removeIf(role -> Harpymodloader.VANNILA_ROLES.contains(role) || !role.canUseKiller() || role.isInnocent()
                 || role == TMMRoles.CIVILIAN
                 || HarpyModLoaderConfig.HANDLER.instance().disabled.contains(role.identifier().toString()));
-
         ArrayList<ServerPlayerEntity> playersForKillerRoles = new ArrayList<>(players);
         playersForKillerRoles.removeIf(player -> {
             Role role = roleAssignments.getOrDefault(player, null);
