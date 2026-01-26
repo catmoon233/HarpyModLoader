@@ -471,7 +471,8 @@ public class ModdedMurderGameMode extends MurderGameMode {
 
         int killerCount = SetRoleCountCommand.getKillerCount(players.size());
         int vigilanteCount = SetRoleCountCommand.getVigilanteCount(players.size());
-
+        killerCount = Math.min(1, killerCount);
+        vigilanteCount = Math.min(1, vigilanteCount);
         List<ServerPlayerEntity> playersForVigilante = new ArrayList<>(players);
         playersForVigilante.removeIf(player -> Harpymodloader.FORCED_MODDED_ROLE_FLIP.containsKey(player.getUuid()));
 
@@ -490,7 +491,7 @@ public class ModdedMurderGameMode extends MurderGameMode {
 
         // 处理杀手分配
         List<ServerPlayerEntity> selectedKillers = new ArrayList<>();
-        int actualKillerCount = Math.min(killerCount, playersForVigilante.size());
+        int actualKillerCount = Math.min(killerCount, playersForKiller.size());
 
         // 随机选择杀手
         List<ServerPlayerEntity> shuffledPlayersForKillers = new ArrayList<>(playersForKiller);
@@ -507,7 +508,7 @@ public class ModdedMurderGameMode extends MurderGameMode {
 
         // 处理义警分配
         List<ServerPlayerEntity> selectedVigilantes = new ArrayList<>();
-        int actualVigilanteCount = Math.min(vigilanteCount, playersForKiller.size());
+        int actualVigilanteCount = Math.min(vigilanteCount, playersForVigilante.size());
 
         // 随机选择义警
         List<ServerPlayerEntity> shuffledPlayersForVigilantes = new ArrayList<>(playersForVigilante);
