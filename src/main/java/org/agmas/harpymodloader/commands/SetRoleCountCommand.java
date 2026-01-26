@@ -45,7 +45,8 @@ public class SetRoleCountCommand {
         if (count == 0) {
             context.getSource().sendFeedback(() -> Text.translatable("commands.setrolecount.detective.auto"), false);
         } else {
-            context.getSource().sendFeedback(() -> Text.translatable("commands.setrolecount.detective.set", count), false);
+            context.getSource().sendFeedback(() -> Text.translatable("commands.setrolecount.detective.set", count),
+                    false);
         }
         return 1;
     }
@@ -62,7 +63,7 @@ public class SetRoleCountCommand {
         if (forcedKillerCount > 0) {
             return Math.min(forcedKillerCount, playerCount); // 确保不超过玩家总数
         } else {
-            return playerCount /6;
+            return playerCount / 6;
         }
     }
 
@@ -71,7 +72,7 @@ public class SetRoleCountCommand {
         if (forcedVigilanteCount > 0) {
             return Math.min(forcedVigilanteCount, playerCount); // 确保不超过玩家总数
         } else {
-            return playerCount /6;
+            return playerCount / 6;
         }
     }
 }

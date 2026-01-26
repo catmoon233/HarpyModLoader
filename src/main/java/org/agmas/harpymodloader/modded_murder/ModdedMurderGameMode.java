@@ -26,6 +26,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.UUID;
 import org.agmas.harpymodloader.Harpymodloader;
 import org.agmas.harpymodloader.WeightedUtil;
@@ -281,8 +282,9 @@ public class ModdedMurderGameMode extends MurderGameMode {
 
         ArrayList<ServerPlayerEntity> playersForCivillianRoles = new ArrayList<>(players);
         playersForCivillianRoles.removeIf(player -> {
-            Role role = gameWorldComponent.getRole(player);
-            return (role != null) && (!Harpymodloader.OVERWRITE_ROLES.contains(role) || role.canUseKiller());
+            Role role = roleAssignments.getOrDefault(player, null);
+            return (role != null)
+                    && (!Harpymodloader.OVERWRITE_ROLES.contains(role) || role.canUseKiller() || !role.isInnocent());
         });
 
         Collections.shuffle(shuffledCivillianRoles);
@@ -340,12 +342,13 @@ public class ModdedMurderGameMode extends MurderGameMode {
         ArrayList<Role> shuffledKillerRoles = new ArrayList<>(TMMRoles.ROLES.values());
         // 从杀手角色中排除CIVILIAN（其实不需要）
         shuffledKillerRoles.removeIf(role -> Harpymodloader.VANNILA_ROLES.contains(role) || !role.canUseKiller()
-                || role == TMMRoles.CIVILIAN || HarpyModLoaderConfig.HANDLER.instance().disabled.contains(role.identifier().toString()));
+                || role == TMMRoles.CIVILIAN
+                || HarpyModLoaderConfig.HANDLER.instance().disabled.contains(role.identifier().toString()));
 
         ArrayList<ServerPlayerEntity> playersForKillerRoles = new ArrayList<>(players);
         playersForKillerRoles.removeIf(player -> {
-            Role role = gameWorldComponent.getRole(player);
-            return !Harpymodloader.OVERWRITE_ROLES.contains(role) || !role.canUseKiller();
+            Role role = roleAssignments.getOrDefault(player, null);
+            return role == null || !Harpymodloader.OVERWRITE_ROLES.contains(role) || !role.canUseKiller();
         });
 
         Collections.shuffle(shuffledKillerRoles);
@@ -374,45 +377,54 @@ public class ModdedMurderGameMode extends MurderGameMode {
 
         ArrayList<ServerPlayerEntity> assignedPlayers = new ArrayList<>();
 
-        if (Harpymodloader.FORCED_MODDED_ROLE.containsKey(role)) {
-            for (UUID uuid : Harpymodloader.FORCED_MODDED_ROLE.get(role)) {
-                PlayerEntity player = world.getPlayerByUuid(uuid);
-                if (player instanceof ServerPlayerEntity serverPlayer) {
-                    if (players.contains(serverPlayer)) {
-                        assignedPlayers.add(serverPlayer);
-                        --desiredRoleCount;
-                        ModdedWeights.roleRounds.get(role).put(player.getUuid(),
-                                ModdedWeights.roleRounds.get(role).getOrDefault(player.getUuid(), 1) + 1);
-                    }
-                }
-            }
-        }
+        // 暂时忽略权重
 
-        // 使用 WeightedUtil 重构权重选择逻辑
-        HashMap<ServerPlayerEntity, Float> weightMap = new HashMap<>();
-        for (ServerPlayerEntity player : players) {
-            if (!Harpymodloader.FORCED_MODDED_ROLE_FLIP.containsKey(player.getUuid())
-                    && Harpymodloader.OVERWRITE_ROLES.contains(gameWorldComponent.getRole(player))) {
-                float weight = (float) Math
-                        .exp((-ModdedWeights.roleRounds.get(role).getOrDefault(player.getUuid(), 1) * 4));
-                if (!gameWorldComponent.areWeightsEnabled()) {
-                    weight = 1.0F;
-                }
+        // if (Harpymodloader.FORCED_MODDED_ROLE.containsKey(role)) {
+        // for (UUID uuid : Harpymodloader.FORCED_MODDED_ROLE.get(role)) {
+        // PlayerEntity player = world.getPlayerByUuid(uuid);
+        // if (player instanceof ServerPlayerEntity serverPlayer) {
+        // if (players.contains(serverPlayer)) {
+        // assignedPlayers.add(serverPlayer);
+        // --desiredRoleCount;
+        // ModdedWeights.roleRounds.get(role).put(player.getUuid(),
+        // ModdedWeights.roleRounds.get(role).getOrDefault(player.getUuid(), 1) + 1);
+        // }
+        // }
+        // }
+        // }
+        // // 使用 WeightedUtil 重构权重选择逻辑
+        // HashMap<ServerPlayerEntity, Float> weightMap = new HashMap<>();
+        // for (ServerPlayerEntity player : players) {
+        // if (!Harpymodloader.FORCED_MODDED_ROLE_FLIP.containsKey(player.getUuid())
+        // &&
+        // Harpymodloader.OVERWRITE_ROLES.contains(gameWorldComponent.getRole(player)))
+        // {
+        // float weight = (float) Math
+        // .exp((-ModdedWeights.roleRounds.get(role).getOrDefault(player.getUuid(), 1) *
+        // 4));
+        // if (!gameWorldComponent.areWeightsEnabled()) {
+        // weight = 1.0F;
+        // }
 
-                weightMap.put(player, weight);
-            }
-        }
+        // weightMap.put(player, weight);
+        // }
+        // }
 
-        WeightedUtil<ServerPlayerEntity> weightedUtil = new WeightedUtil<>(weightMap);
+        // WeightedUtil<ServerPlayerEntity> weightedUtil = new
+        // WeightedUtil<>(weightMap);
 
+        Random random = new Random();
         // 选择指定数量的玩家
-        for (int i = 0; i < desiredRoleCount && !weightedUtil.isEmpty(); ++i) {
-            ServerPlayerEntity selectedPlayer = weightedUtil.selectRandomKeyBasedOnWeightsAndRemoved();
+        for (int i = 0; i < desiredRoleCount && !players.isEmpty(); ++i) {
+            int randomIdx = random.nextInt(players.size());
+            ServerPlayerEntity selectedPlayer = players.get(randomIdx);
             if (selectedPlayer != null) {
                 assignedPlayers.add(selectedPlayer);
-                // 更新角色轮次计数
-                ModdedWeights.roleRounds.get(role).put(selectedPlayer.getUuid(),
-                        ModdedWeights.roleRounds.get(role).getOrDefault(selectedPlayer.getUuid(), 1) + 1);
+
+                // // 更新角色轮次计数
+                // ModdedWeights.roleRounds.get(role).put(selectedPlayer.getUuid(),
+                // ModdedWeights.roleRounds.get(role).getOrDefault(selectedPlayer.getUuid(), 1)
+                // + 1);
             }
         }
 
