@@ -308,7 +308,8 @@ public class ModdedMurderGameMode extends MurderGameMode {
             assignedNeutralRoles += findAndAssignPlayers(roleSpecificDesireCount, role, playersForCivillianRoles,
                     gameWorldComponent, serverWorld, roleAssignments);
             playersForCivillianRoles.removeIf(player -> {
-                return roleAssignments.containsKey(player);
+                Role role1 = roleAssignments.getOrDefault(player, null);
+                return role1 != null && !Harpymodloader.OVERWRITE_ROLES.contains(role1);
             });
         }
 
@@ -325,7 +326,8 @@ public class ModdedMurderGameMode extends MurderGameMode {
             findAndAssignPlayers(roleSpecificDesireCount, role, playersForCivillianRoles, gameWorldComponent,
                     serverWorld, roleAssignments);
             playersForCivillianRoles.removeIf(player -> {
-                return roleAssignments.containsKey(player);
+                Role role1 = roleAssignments.getOrDefault(player, null);
+                return role1 != null && !Harpymodloader.OVERWRITE_ROLES.contains(role1);
             });
         }
     }
@@ -361,7 +363,8 @@ public class ModdedMurderGameMode extends MurderGameMode {
             findAndAssignPlayers(roleSpecificDesireCount, role, playersForKillerRoles, gameWorldComponent, serverWorld,
                     roleAssignments);
             playersForKillerRoles.removeIf(player -> {
-                return roleAssignments.containsKey(player);
+                Role role1 = roleAssignments.getOrDefault(player, null);
+                return role1 != null && !Harpymodloader.OVERWRITE_ROLES.contains(role1);
             });
         }
     }
@@ -416,9 +419,8 @@ public class ModdedMurderGameMode extends MurderGameMode {
         int i = 0;
         for (ServerPlayerEntity player : assignedPlayers) {
             // 不直接添加角色，而是记录到角色分配映射表中
+            // roleAssignments.remove(player);
             roleAssignments.put(player, role);
-            // Log.info(LogCategory.GENERAL, player.getNameForScoreboard() + " || " +
-            // role.identifier());
             i++;
         }
         return i;
