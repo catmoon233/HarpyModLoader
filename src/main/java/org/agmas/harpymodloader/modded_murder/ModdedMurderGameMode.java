@@ -477,10 +477,16 @@ public class ModdedMurderGameMode extends MurderGameMode {
         playersForVigilante.removeIf(player -> Harpymodloader.FORCED_MODDED_ROLE_FLIP.containsKey(player.getUuid()));
 
         List<ServerPlayerEntity> playersForKiller = new ArrayList<>(players);
+
+        // 处理杀手分配
+        List<ServerPlayerEntity> forcedKillers = new ArrayList<>();
+        List<ServerPlayerEntity> selectedKillers = new ArrayList<>();
+        int actualKillerCount = Math.min(killerCount, playersForKiller.size());
+
         playersForKiller.removeIf(player -> {
             if (Harpymodloader.FORCED_MODDED_ROLE_FLIP.containsKey(player.getUuid())) {
                 if (Harpymodloader.FORCED_MODDED_ROLE_FLIP.get(player.getUuid()).canUseKiller()) {
-                    roleSelector.forcedKillers.add(player.getUuid());
+                    forcedKillers.add(player);
                     return false;
                 } else {
                     return true;
@@ -489,20 +495,20 @@ public class ModdedMurderGameMode extends MurderGameMode {
             return false;
         });
 
-        // 处理杀手分配
-        List<ServerPlayerEntity> selectedKillers = new ArrayList<>();
-        int actualKillerCount = Math.min(killerCount, playersForKiller.size());
-
         // 随机选择杀手
         List<ServerPlayerEntity> shuffledPlayersForKillers = new ArrayList<>(playersForKiller);
         Collections.shuffle(shuffledPlayersForKillers);
-
+        shuffledPlayersForKillers.removeIf((player)->{
+            return player == null;
+        });
+        shuffledPlayersForKillers.addAll(0, forcedKillers);
         for (int i = 0; i < actualKillerCount && i < shuffledPlayersForKillers.size(); i++) {
             selectedKillers.add(shuffledPlayersForKillers.get(i));
         }
 
         // 记录到角色分配映射表
         for (ServerPlayerEntity player : selectedKillers) {
+            roleAssignments.remove(player);
             roleAssignments.put(player, TMMRoles.KILLER);
         }
 
@@ -520,6 +526,7 @@ public class ModdedMurderGameMode extends MurderGameMode {
 
         // 记录到角色分配映射表
         for (ServerPlayerEntity player : selectedVigilantes) {
+            roleAssignments.remove(player);
             roleAssignments.put(player, TMMRoles.VIGILANTE);
         }
 
