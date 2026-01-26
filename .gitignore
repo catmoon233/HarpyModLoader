@@ -3,3 +3,7 @@
 build/*
 run/*
 bin/*
+
+build/
+run/
+bin/
