@@ -134,15 +134,15 @@ public class ModdedMurderGameMode extends MurderGameMode {
         WeightedUtil<Role> roleWeightsUtil = new WeightedUtil<>(roleWeights);
 
 
-        Map<PlayerEntity, Role> roleReplacements_cache = new HashMap<>();
+        Map<PlayerEntity, Role> roleReplacementsCache = new HashMap<>();
         roleAssignments.forEach(
                 (player, role) -> {
                     if (role == null) {
-                        roleReplacements_cache.put(player, roleWeightsUtil.selectRandomKeyBasedOnWeightsAndRemoved());
+                        roleReplacementsCache.put(player, roleWeightsUtil.selectRandomKeyBasedOnWeightsAndRemoved());
                     }
                 }
         );
-        roleAssignments.putAll(roleReplacements_cache);
+        roleAssignments.putAll(roleReplacementsCache);
 
 
 
