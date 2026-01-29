@@ -2,6 +2,7 @@ package org.agmas.harpymodloader.events;
 
 
 import dev.doctor4t.trainmurdermystery.api.Role;
+import dev.doctor4t.trainmurdermystery.api.RoleMethodDispatcher;
 import net.fabricmc.fabric.api.event.Event;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -13,7 +14,7 @@ public interface ModdedRoleAssigned {
         for (ModdedRoleAssigned listener : listeners) {
             listener.assignModdedRole(player, role);
             if (player instanceof ServerPlayerEntity serverPlayer) {
-                role.onInit(serverPlayer.getServer(), serverPlayer);
+                RoleMethodDispatcher.onInit(role,serverPlayer.getServer(), serverPlayer);
             }
         }
     });
