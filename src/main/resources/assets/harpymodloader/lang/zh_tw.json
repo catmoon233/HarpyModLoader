@@ -1355,4 +1355,12 @@
   "item.noellesroles.hallucination_bottle": "迷幻瓶",
   "item.noellesroles.hallucination_bottle.tooltip": "右鍵使用\n製造大量迷幻煙霧\n20格範圍內玩家視野會隨機偏離\n持續3秒，每秒觸發一次\n耐久：2次"
 
+  "commands.tmm.setroleweight.success": "角色 %s 的權重已設置為 %d",
+  "commands.tmm.setroleweight.failed": "設置角色權重失敗",
+  
+  "commands.tmm.togglecustomroleweights.success": "自定義角色權重已%s",
+  
+  "commands.tmm.checkweights.entry": "%s: 殺手=%s, 警衛=%s",
+  "commands.tmm.checkweights.header": "=== 玩家權重 ==="
+
 }

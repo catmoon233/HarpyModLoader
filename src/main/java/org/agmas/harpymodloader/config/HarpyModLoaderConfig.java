@@ -4,10 +4,12 @@ import dev.isxander.yacl3.config.v2.api.ConfigClassHandler;
 import dev.isxander.yacl3.config.v2.api.SerialEntry;
 import dev.isxander.yacl3.config.v2.api.serializer.GsonConfigSerializerBuilder;
 import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.util.Identifier;
 import org.agmas.harpymodloader.Harpymodloader;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 public class HarpyModLoaderConfig {
@@ -30,5 +32,11 @@ public class HarpyModLoaderConfig {
 
     @SerialEntry(comment = "How many modifiers should be given relative to the Killer Dividend")
     public int modifierMultiplier = 1;
+
+    @SerialEntry(comment = "Custom weights for roles - maps role identifiers to their custom weight values")
+    public HashMap<Identifier, Float> roleWeights = new HashMap<>();
+
+    @SerialEntry(comment = "Whether to use custom role weights instead of default round-based weights")
+    public boolean useCustomRoleWeights = true;
 
 }
