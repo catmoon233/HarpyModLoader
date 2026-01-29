@@ -3,6 +3,7 @@ package org.agmas.harpymodloader.modded_murder;
 import dev.doctor4t.trainmurdermystery.api.Role;
 import dev.doctor4t.trainmurdermystery.api.TMMRoles;
 import dev.doctor4t.trainmurdermystery.cca.GameWorldComponent;
+import dev.doctor4t.trainmurdermystery.cca.PlayerShopComponent;
 import dev.doctor4t.trainmurdermystery.cca.TrainWorldComponent;
 import dev.doctor4t.trainmurdermystery.game.MurderGameMode;
 import dev.doctor4t.trainmurdermystery.util.AnnounceWelcomePayload;
@@ -166,6 +167,10 @@ public class ModdedMurderGameMode extends MurderGameMode {
                 value.getDefaultItems().forEach(
                         item -> key.getInventory().offerOrDrop(item));
                 Harpymodloader.LOGGER.fine("Assigned role " + value.getIdentifier() + " to " + key.getName());
+                if (value.canUseKiller()){
+                    PlayerShopComponent playerShopComponent = PlayerShopComponent.KEY.get(key);
+                    playerShopComponent.setBalance(100+playerShopComponent.balance);
+                }
             } else {
                 // 如果没有分配角色，则分配默认平民角色
                 gameWorldComponent.addRole(key, TMMRoles.CIVILIAN);
