@@ -165,9 +165,11 @@ public class ModdedMurderGameMode extends MurderGameMode {
 
                 value.getDefaultItems().forEach(
                         item -> key.getInventory().offerOrDrop(item));
+                Harpymodloader.LOGGER.fine("Assigned role " + value.getIdentifier() + " to " + key.getName());
             } else {
                 // 如果没有分配角色，则分配默认平民角色
                 gameWorldComponent.addRole(key, TMMRoles.CIVILIAN);
+                Harpymodloader.LOGGER.fine("Assigned role " + TMMRoles.CIVILIAN.getIdentifier() + " to " + key.getName());
             }
         }
 
