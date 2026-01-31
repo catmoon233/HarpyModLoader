@@ -39,4 +39,7 @@ public class HarpyModLoaderConfig {
     @SerialEntry(comment = "Whether to use custom role weights instead of default round-based weights")
     public boolean useCustomRoleWeights = true;
 
+    @SerialEntry(comment = "Companion roles that appear together - maps a role to another role that should appear together")
+    public HashMap<Identifier, Identifier> companionRoles = new HashMap<>();
+
 }

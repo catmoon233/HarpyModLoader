@@ -35,6 +35,9 @@ import org.agmas.harpymodloader.modifiers.Modifier;
 
 public class Harpymodloader implements ModInitializer {
 
+
+    public static HashMap<Role,Role> Occupations_Roles = new HashMap<>();
+
     public static HashMap<Identifier, Integer> ROLE_MAX = new HashMap<>();
     public static HashMap<Identifier, Integer> MODIFIER_MAX = new HashMap<>();
 
@@ -148,6 +151,7 @@ public class Harpymodloader implements ModInitializer {
             ListRolesCommand.register(dispatcher);
             ForceModifierCommand.register(dispatcher);
             SetEnabledModifierCommand.register(dispatcher);
+            SetCompanionRoleCommand.register(dispatcher);
             SetRoleCountCommand.register(dispatcher);
             SetRoleWeightCommand.register(dispatcher);
             ToggleCustomRoleWeightsCommand.register(dispatcher);
