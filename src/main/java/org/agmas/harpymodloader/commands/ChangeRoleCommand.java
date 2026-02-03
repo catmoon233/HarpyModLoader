@@ -26,7 +26,7 @@ public class ChangeRoleCommand {
         dispatcher.register(CommandManager.literal("changeRole")
                 .requires(serverCommandSource -> serverCommandSource.hasPermissionLevel(2))
                 .then(CommandManager.argument("player", EntityArgumentType.player())
-                        .then(CommandManager.argument("role", RoleArgumentType.skipVanilla())
+                        .then(CommandManager.argument("role", RoleArgumentType.create())
                                 .executes(ChangeRoleCommand::execute))));
     }
 
