@@ -4,6 +4,7 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
+import dev.doctor4t.trainmurdermystery.cca.GameWorldComponent;
 import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
@@ -28,10 +29,14 @@ public class AssignModifierCommand {
     private static int execute(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         ServerPlayerEntity targetPlayer = EntityArgumentType.getPlayer(context, "player");
         Modifier modifier = ModifierArgumentType.getModifier(context, "modifier");
-
+        GameWorldComponent game = GameWorldComponent.KEY.get(targetPlayer.getWorld());
         // 获取游戏世界组件
         WorldModifierComponent worldModifierComponent = WorldModifierComponent.KEY.get(targetPlayer.getWorld());
 
+        if(!game.isRunning()){
+            context.getSource().sendFeedback(() -> Text.translatable("commands.changemodifier.player.notification.failed.nostart"), true);
+            return 2;
+        }
         // 获取玩家当前Modifier状态
         var modifiers = worldModifierComponent.getModifiers(targetPlayer.getUuid());
         final MutableText feedbackText;

@@ -156,6 +156,7 @@ public class Harpymodloader implements ModInitializer {
             SetRoleWeightCommand.register(dispatcher);
             ToggleCustomRoleWeightsCommand.register(dispatcher);
             ChangeRoleCommand.register(dispatcher);
+            AssignModifierCommand.register(dispatcher);
         });
     }
 
