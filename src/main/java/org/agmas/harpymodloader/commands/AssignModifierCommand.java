@@ -13,6 +13,7 @@ import net.minecraft.text.Text;
 import org.agmas.harpymodloader.commands.argument.ModifierArgumentType;
 import org.agmas.harpymodloader.component.WorldModifierComponent;
 import org.agmas.harpymodloader.events.ModifierAssigned;
+import org.agmas.harpymodloader.events.ModifierRemoved;
 import org.agmas.harpymodloader.modifiers.Modifier;
 
 public class AssignModifierCommand {
@@ -36,6 +37,7 @@ public class AssignModifierCommand {
         final MutableText feedbackText;
 
         if (modifiers.contains(modifier)) {
+            ModifierRemoved.EVENT.invoker().removeModifier(targetPlayer, modifier);
             worldModifierComponent.removeModifier(targetPlayer.getUuid(), modifier);
             feedbackText = Text.translatable("commands.changemodifier.player.notification.remove",
                     targetPlayer.getDisplayName(), modifier.getName());
