@@ -3,9 +3,8 @@ package org.agmas.harpymodloader.modded_murder;
 import dev.doctor4t.trainmurdermystery.api.Role;
 import dev.doctor4t.trainmurdermystery.api.TMMRoles;
 import dev.doctor4t.trainmurdermystery.cca.GameWorldComponent;
-import dev.doctor4t.trainmurdermystery.cca.ScoreboardRoleSelectorComponent;
+import dev.doctor4t.trainmurdermystery.cca.PlayerShopComponent;
 import dev.doctor4t.trainmurdermystery.cca.TrainWorldComponent;
-import dev.doctor4t.trainmurdermystery.client.gui.RoleAnnouncementTexts;
 import dev.doctor4t.trainmurdermystery.game.MurderGameMode;
 import dev.doctor4t.trainmurdermystery.util.AnnounceWelcomePayload;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
@@ -20,14 +19,11 @@ import net.minecraft.text.Text;
 import net.minecraft.text.Texts;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
-import net.minecraft.world.World;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-import java.util.UUID;
+import net.minecraft.util.Pair;
+
+import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
+
 import org.agmas.harpymodloader.Harpymodloader;
 import org.agmas.harpymodloader.WeightedUtil;
 import org.agmas.harpymodloader.component.WorldModifierComponent;
@@ -37,8 +33,6 @@ import org.agmas.harpymodloader.events.ModifierAssigned;
 import org.agmas.harpymodloader.events.ResetPlayerEvent;
 import org.agmas.harpymodloader.commands.SetRoleCountCommand;
 import org.agmas.harpymodloader.modifiers.HMLModifiers;
-import org.agmas.harpymodloader.modifiers.Modifier;
-import org.jetbrains.annotations.NotNull;
 
 public class ModdedMurderGameMode extends MurderGameMode {
 
@@ -61,7 +55,7 @@ public class ModdedMurderGameMode extends MurderGameMode {
 
     @Override
     public void initializeGame(ServerWorld serverWorld, GameWorldComponent gameWorldComponent,
-            List<ServerPlayerEntity> players) {
+                               List<ServerPlayerEntity> players) {
 
         Harpymodloader.refreshRoles();
 
@@ -81,49 +75,232 @@ public class ModdedMurderGameMode extends MurderGameMode {
         // 执行游戏开始时的函数
         executeFunction(serverWorld.getServer().getCommandSource(), "harpymodloader:start_game");
 
+        assignRole(serverWorld, gameWorldComponent, players);
+    }
+
+    private void assignRole(ServerWorld serverWorld, GameWorldComponent gameWorldComponent, List<ServerPlayerEntity> players) {
         // 创建角色分配映射表
-        Map<ServerPlayerEntity, Role> roleAssignments = new HashMap<>();
+        Map<PlayerEntity, Role> roleAssignments = new HashMap<>();
 
         // 初始化角色分配映射，但不预先分配任何角色
-        for (ServerPlayerEntity player : players) {
+        for (PlayerEntity player : players) {
             roleAssignments.put(player, null); // 使用null表示尚未分配角色
         }
 
-        int roleCount = assignVannilaRoles(serverWorld, gameWorldComponent, players, roleAssignments);
+        AtomicInteger killerCount = new AtomicInteger(SetRoleCountCommand.getKillerCount(players.size()));
+        AtomicInteger vigilanteCount = new AtomicInteger(SetRoleCountCommand.getVigilanteCount(players.size()));
+        AtomicInteger natureCount = new AtomicInteger(SetRoleCountCommand.getNatureCount(players.size()));
+        int civilian = players.size() - killerCount.get() - vigilanteCount.get() - natureCount.get();
 
-        assignCivilianReplacingRoles(roleCount, serverWorld, gameWorldComponent, players, roleAssignments);
+        Harpymodloader.FORCED_MODDED_ROLE_FLIP.forEach(
+                (player, forcedRole) -> {
+                    roleAssignments.put(serverWorld.getPlayerByUuid(player), forcedRole);
+                    if (forcedRole.canUseKiller()){
+                        killerCount.set( killerCount.get() - 1);
+                    }
+                    if (forcedRole == TMMRoles.VIGILANTE){
+                        vigilanteCount.set( vigilanteCount.get() - 1);
+                    }
+                    if (!forcedRole.isInnocent() && !forcedRole.canUseKiller()){
+                        natureCount.set( natureCount.get() - 1);
+                    }
+                }
+        );
 
-        assignKillerReplacingRoles(roleCount, serverWorld, gameWorldComponent, players, roleAssignments);
+        if (vigilanteCount.get() <= 0){
+            civilian += vigilanteCount.get();
+            vigilanteCount.set(0);
+        }
+        if (killerCount.get() <= 0){
+            civilian += killerCount.get();
+            killerCount.set(0);
+        }
+        if (natureCount.get() <= 0){
+            civilian += natureCount.get();
+            natureCount.set(0);
+        }
 
-        int modifierRoleCount = roleCount * HarpyModLoaderConfig.HANDLER.instance().modifierMultiplier;
+        // 分配杀手替换角色
+        Pair<List<Role>,Integer> killers = assignKillerReplacingRoles(killerCount.get());
+        // 分配警长替换角色
+        Pair<List<Role>,Integer> vigilantes = assignVigilantesReplacingRoles(vigilanteCount.get());
+        // 分配自然替换角色
+        Pair<List<Role>,Integer> natures = assignNatureReplacingRoles(natureCount.get());
+
+        // 记录特殊角色总数
+        int specialRoleCount = killers.getLeft().size() + vigilantes.getLeft().size() + natures.getLeft().size();
+
+        // 调整平民数量
+        civilian += killers.getRight() + vigilantes.getRight() + natures.getRight();
+
+        // 收集所有特殊角色
+        List<Role> allSpecialRoles = new ArrayList<>();
+        allSpecialRoles.addAll(killers.getLeft());
+        allSpecialRoles.addAll(vigilantes.getLeft());
+        allSpecialRoles.addAll(natures.getLeft());
+
+        // 为特殊角色查找对应的职业角色
+        List<Role> occupationRoles = new ArrayList<>();
+        for (Role specialRole : allSpecialRoles) {
+            if (Harpymodloader.Occupations_Roles.containsKey(specialRole)) {
+                Role occupationRole = Harpymodloader.Occupations_Roles.get(specialRole);
+                // 检查职业角色是否被禁用
+                if (!HarpyModLoaderConfig.HANDLER.instance().disabled.contains(occupationRole.identifier().toString())) {
+                    occupationRoles.add(occupationRole);
+                }
+            }
+        }
+
+        // 从平民数量中扣除职业角色的数量
+        int totalOccupationRoles = occupationRoles.size();
+        civilian -= totalOccupationRoles;
+        if (civilian < 0) {
+            // 如果职业角色太多，调整平民角色数量
+            civilian = 0;
+        }
+
+        // 分配平民角色
+        List<Role> civilianRoles = assignCivilianRoles(civilian);
+
+        // 构建权重映射：包含所有角色（特殊角色、职业角色、平民角色）
+        Map<Role,Float> roleWeights = new HashMap<>();
+        allSpecialRoles.forEach(role -> roleWeights.put(role, 1f));
+        occupationRoles.forEach(role -> roleWeights.put(role, 1f));
+        civilianRoles.forEach(role -> roleWeights.put(role, 1f));
+        WeightedUtil<Role> roleWeightsUtil = new WeightedUtil<>(roleWeights);
+
+        // 角色替换缓存
+        Map<PlayerEntity, Role> roleReplacementsCache = new HashMap<>();
+        roleAssignments.forEach(
+                (player, role) -> {
+                    if (role == null) {
+                        roleReplacementsCache.put(player, roleWeightsUtil.selectRandomKeyBasedOnWeightsAndRemoved());
+                    }
+                }
+        );
+        roleAssignments.putAll(roleReplacementsCache);
+
+        // 特殊角色与职业角色配对分配
+        assignOccupationRolesWithMatching(serverWorld, gameWorldComponent, players, roleAssignments, allSpecialRoles, occupationRoles);
+
+        int modifierRoleCount = specialRoleCount * HarpyModLoaderConfig.HANDLER.instance().modifierMultiplier;
         assignModifiers(modifierRoleCount, serverWorld, gameWorldComponent, players);
 
         // 统一应用角色分配并触发相应事件
-        for (Map.Entry<ServerPlayerEntity, Role> entry : roleAssignments.entrySet()) {
+        for (Map.Entry<PlayerEntity, Role> entry : roleAssignments.entrySet()) {
             final var key = entry.getKey();
             final var value = entry.getValue();
             if (value != null) { // 只有当角色不为null时才分配
                 gameWorldComponent.addRole(key, value);
                 // 触发模组化角色分配事件
                 ModdedRoleAssigned.EVENT.invoker().assignModdedRole(key, value);
-                value.onInit(key.getServer(), key);
+
                 value.getDefaultItems().forEach(
                         item -> key.getInventory().offerOrDrop(item));
+                Harpymodloader.LOGGER.fine("Assigned role " + value.getIdentifier() + " to " + key.getName());
+                if (value.canUseKiller()){
+                    PlayerShopComponent playerShopComponent = PlayerShopComponent.KEY.get(key);
+                    playerShopComponent.setBalance(100+playerShopComponent.balance);
+                }
             } else {
                 // 如果没有分配角色，则分配默认平民角色
                 gameWorldComponent.addRole(key, TMMRoles.CIVILIAN);
+                Harpymodloader.LOGGER.fine("Assigned role " + TMMRoles.CIVILIAN.getIdentifier() + " to " + key.getName());
             }
         }
 
         for (ServerPlayerEntity player : players) {
             ServerPlayNetworking.send(player,
-                    new AnnounceWelcomePayload(gameWorldComponent.getRole(player).getIdentifier().toString(), roleCount,
-                            players.size() - roleCount));
+                    new AnnounceWelcomePayload(gameWorldComponent.getRole(player).getIdentifier().toString(), specialRoleCount + totalOccupationRoles,
+                            players.size() - (specialRoleCount + totalOccupationRoles)));
         }
 
         Harpymodloader.FORCED_MODDED_ROLE.clear();
         Harpymodloader.FORCED_MODDED_ROLE_FLIP.clear();
         Harpymodloader.FORCED_MODDED_MODIFIER.clear();
+    }
+
+    /**
+     * 为特殊角色分配对应的职业角色给其他玩家
+     */
+    private void assignOccupationRolesWithMatching(ServerWorld serverWorld, GameWorldComponent gameWorldComponent,
+                                                   List<ServerPlayerEntity> players, Map<PlayerEntity, Role> roleAssignments,
+                                                   List<Role> specialRoles, List<Role> occupationRoles) {
+
+        if (occupationRoles.isEmpty() || specialRoles.isEmpty()) {
+            return;
+        }
+
+        // 获取未分配角色的玩家列表（已经分配了平民或特殊角色的玩家）
+        List<PlayerEntity> availablePlayers = new ArrayList<>();
+        for (PlayerEntity player : players) {
+            Role assignedRole = roleAssignments.get(player);
+            if (assignedRole != null && assignedRole != TMMRoles.CIVILIAN) {
+                // 只考虑已经分配了非平民角色的玩家
+                availablePlayers.add(player);
+            }
+        }
+
+        // 随机打乱可用玩家列表
+        Collections.shuffle(availablePlayers);
+
+        // 为每个职业角色寻找一个对应的特殊角色玩家
+        Map<Role, Role> occupationToSpecialMap = new HashMap<>();
+        for (Role occupationRole : occupationRoles) {
+            // 查找对应的特殊角色
+            for (Map.Entry<Role, Role> entry : Harpymodloader.Occupations_Roles.entrySet()) {
+                if (entry.getValue().equals(occupationRole)) {
+                    occupationToSpecialMap.put(occupationRole, entry.getKey());
+                    break;
+                }
+            }
+        }
+
+        // 分配职业角色给可用玩家
+        int assignedCount = 0;
+        for (int i = 0; i < Math.min(occupationRoles.size(), availablePlayers.size()); i++) {
+            Role occupationRole = occupationRoles.get(i);
+            Role specialRole = occupationToSpecialMap.get(occupationRole);
+
+            if (specialRole != null) {
+                // 查找分配了对应特殊角色的玩家
+                PlayerEntity specialPlayer = null;
+                for (Map.Entry<PlayerEntity, Role> entry : roleAssignments.entrySet()) {
+                    if (entry.getValue() != null && entry.getValue().equals(specialRole)) {
+                        specialPlayer = entry.getKey();
+                        break;
+                    }
+                }
+
+                if (specialPlayer != null) {
+                    // 为职业角色选择一个不同的玩家（不能是特殊角色玩家本人）
+                    PlayerEntity occupationPlayer = availablePlayers.get(i);
+                    if (!occupationPlayer.equals(specialPlayer)) {
+                        roleAssignments.put(occupationPlayer, occupationRole);
+                        assignedCount++;
+                        Harpymodloader.LOGGER.fine("Assigned occupation role " + occupationRole.getIdentifier() +
+                                " to " + occupationPlayer.getName() +
+                                " (matches special role " + specialRole.getIdentifier() +
+                                " assigned to " + specialPlayer.getName() + ")");
+                    }
+                }
+            }
+        }
+
+        // 如果还有未分配的职业角色，分配给剩余玩家
+        if (assignedCount < occupationRoles.size()) {
+            List<PlayerEntity> remainingPlayers = new ArrayList<>(players);
+            remainingPlayers.removeIf(player -> roleAssignments.get(player) != null);
+            Collections.shuffle(remainingPlayers);
+
+            for (int i = assignedCount; i < occupationRoles.size() && i - assignedCount < remainingPlayers.size(); i++) {
+                Role occupationRole = occupationRoles.get(i);
+                PlayerEntity player = remainingPlayers.get(i - assignedCount);
+                roleAssignments.put(player, occupationRole);
+                Harpymodloader.LOGGER.fine("Assigned occupation role " + occupationRole.getIdentifier() +
+                        " to " + player.getName() + " (no matching special role found)");
+            }
+        }
     }
 
     // 执行指定函数的辅助方法
@@ -166,7 +343,7 @@ public class ModdedMurderGameMode extends MurderGameMode {
     }
 
     public void assignModifiers(int desiredRoleCount, ServerWorld serverWorld, GameWorldComponent gameWorldComponent,
-            List<ServerPlayerEntity> players) {
+                                List<ServerPlayerEntity> players) {
         WorldModifierComponent worldModifierComponent = WorldModifierComponent.KEY.get(serverWorld);
         worldModifierComponent.getModifiers().clear();
         int killerMods = (int) HMLModifiers.MODIFIERS.stream().filter(modifier -> modifier.killerOnly).count();
@@ -263,274 +440,207 @@ public class ModdedMurderGameMode extends MurderGameMode {
         }
     }
 
-    public void assignCivilianReplacingRoles(int desiredRoleCount, ServerWorld serverWorld,
-            GameWorldComponent gameWorldComponent, List<ServerPlayerEntity> players,
-            Map<ServerPlayerEntity, Role> roleAssignments) {
 
-        // shuffle roles so modded roles are different every time
-        ArrayList<Role> shuffledCivillianRoles = new ArrayList<>(TMMRoles.ROLES.values());
-        // 从平民角色中排除CIVILIAN
-        shuffledCivillianRoles.removeIf(role -> Harpymodloader.VANNILA_ROLES.contains(role) || role.canUseKiller()
-                || !role.isInnocent() || role == TMMRoles.CIVILIAN
-                || HarpyModLoaderConfig.HANDLER.instance().disabled.contains(role.identifier().toString()));
 
-        ArrayList<Role> shuffledNeutralRoles = new ArrayList<>(TMMRoles.ROLES.values());
-        // 从中立角色中排除CIVILIAN
-        shuffledNeutralRoles.removeIf(role -> Harpymodloader.VANNILA_ROLES.contains(role) || role.canUseKiller()
-                || role.isInnocent() || role == TMMRoles.CIVILIAN
-                || HarpyModLoaderConfig.HANDLER.instance().disabled.contains(role.identifier().toString()));
+    public List<Role> assignCivilianRoles(int civilianCount) {
+        if (civilianCount <= 0) return new ArrayList<>();
 
-        ArrayList<ServerPlayerEntity> playersForCivillianRoles = new ArrayList<>(players);
-        playersForCivillianRoles.removeIf(player -> {
-            Role role = roleAssignments.getOrDefault(player, null);
-            if (role == null)
-                return false; // 没职业
-            if (!Harpymodloader.OVERWRITE_ROLES.contains(role))
-                return true; // 这家伙不能分配职业
-            if (role.canUseKiller())
-                return true; // 杀手不要给职业
-            if (!role.isInnocent())
-                return true; // 杀手不要给职业
-            return false;
-        });
+        // 获取所有可能的平民角色，这些角色不能是杀手、不能是原版角色、不能是无辜角色
+        ArrayList<Role> shuffledCivilianRoles = new ArrayList<>(TMMRoles.ROLES.values());
+        shuffledCivilianRoles.removeIf(
+                role -> Harpymodloader.VANNILA_ROLES.contains(role) ||
+                        role.canUseKiller() ||
+                        !role.isInnocent() ||
+                        role == TMMRoles.CIVILIAN ||
+                        HarpyModLoaderConfig.HANDLER.instance().disabled.contains(role.identifier().toString()));
 
-        Collections.shuffle(shuffledCivillianRoles);
-        Collections.shuffle(shuffledCivillianRoles);
-        Collections.shuffle(shuffledNeutralRoles);
-        Collections.shuffle(shuffledNeutralRoles);
-
-        int baseCount = players.size() / 5; // 整数除法自动向下取整
-        int assignedNeutralRoles = 0;
-        int neutralRoleCount = 0;
-        neutralRoleCount = shuffledNeutralRoles.size();
-
-        for (Role role : shuffledNeutralRoles) {
-            if (assignedNeutralRoles >= baseCount) {
-                break;
+        // 构建角色权重映射，每个角色只添加一次
+        HashMap<Role, Float> roleWeights = new HashMap<>();
+        for (Role role : shuffledCivilianRoles) {
+            if (HarpyModLoaderConfig.HANDLER.instance().useCustomRoleWeights) {
+                float customWeight = ModdedWeights.getRoleWeight(role);
+                if (customWeight > 0) {
+                    roleWeights.put(role, customWeight);
+                }
+            } else {
+                roleWeights.put(role, 1f);
             }
-            int roleSpecificDesireCount = Math.min(
-                    (int) Math.ceil((double) playersForCivillianRoles.size() / neutralRoleCount), desiredRoleCount);
-            if (Harpymodloader.ROLE_MAX.containsKey(role.identifier())) {
-                roleSpecificDesireCount = Harpymodloader.ROLE_MAX.get(role.identifier());
-            }
-
-            assignedNeutralRoles += findAndAssignPlayers(roleSpecificDesireCount, role, playersForCivillianRoles,
-                    gameWorldComponent, serverWorld, roleAssignments);
-            playersForCivillianRoles.removeIf(player -> {
-                Role role1 = roleAssignments.getOrDefault(player, null);
-                if (role1 == null)
-                    return false;
-                if (!Harpymodloader.OVERWRITE_ROLES.contains(role1))
-                    return true;
-                return false;
-            });
         }
 
-        int roleCount = shuffledCivillianRoles.size();
+        // 创建加权工具并选择角色
+        WeightedUtil<Role> civilian = new WeightedUtil<>(roleWeights);
 
-        for (Role role : shuffledCivillianRoles) {
-            int roleSpecificDesireCount = Math.min(
-                    (int) Math.max(Math.round((double) playersForCivillianRoles.size() / roleCount), 1),
-                    desiredRoleCount);
-            if (Harpymodloader.ROLE_MAX.containsKey(role.identifier())) {
-                roleSpecificDesireCount = Harpymodloader.ROLE_MAX.get(role.identifier());
-            }
-
-            findAndAssignPlayers(roleSpecificDesireCount, role, playersForCivillianRoles, gameWorldComponent,
-                    serverWorld, roleAssignments);
-            playersForCivillianRoles.removeIf(player -> {
-                Role role1 = roleAssignments.getOrDefault(player, null);
-                if (role1 == null)
-                    return false;
-                if (!Harpymodloader.OVERWRITE_ROLES.contains(role1))
-                    return true;
-                return false;
-            });
+        // 创建临时角色计数映射，用于本次游戏的角色分配
+        Map<Identifier, Integer> tempRoleCounts = new HashMap<>();
+        for (Role role : shuffledCivilianRoles) {
+            tempRoleCounts.put(role.identifier(), Harpymodloader.ROLE_MAX.getOrDefault(role.identifier(), 1));
         }
+
+        List<Role> civilianRoles = new ArrayList<>();
+        for (int i = 0; i < civilianCount; i++) {
+            // 使用新的方法选择角色，该方法会检查并减少计数
+            Role selectedRole = selectRoleWithCountCheck(civilian, "civilian", tempRoleCounts);
+            if (selectedRole != null) {
+                civilianRoles.add(selectedRole);
+            } else {
+                // 如果角色池不够，添加普通平民角色
+                civilianRoles.add(TMMRoles.CIVILIAN);
+            }
+        }
+
+        return civilianRoles;
     }
 
-    public void assignKillerReplacingRoles(int desiredRoleCount, ServerWorld serverWorld,
-            GameWorldComponent gameWorldComponent, List<ServerPlayerEntity> players,
-            Map<ServerPlayerEntity, Role> roleAssignments) {
-
-        // shuffle roles so modded roles are different every time
+    public Pair<List<Role>,Integer> assignKillerReplacingRoles(int killerCount) {
+        if (killerCount <= 0) return new Pair<>(new ArrayList<>(), 0);
         ArrayList<Role> shuffledKillerRoles = new ArrayList<>(TMMRoles.ROLES.values());
-        // 从杀手角色中排除CIVILIAN
         shuffledKillerRoles.removeIf(
                 role -> Harpymodloader.VANNILA_ROLES.contains(role) || !role.canUseKiller() || role.isInnocent()
                         || role == TMMRoles.CIVILIAN
                         || HarpyModLoaderConfig.HANDLER.instance().disabled.contains(role.identifier().toString()));
-        ArrayList<ServerPlayerEntity> playersForKillerRoles = new ArrayList<>(players);
-        playersForKillerRoles.removeIf(player -> {
-            Role role = roleAssignments.getOrDefault(player, null);
-            if (role == null)
-                return true;
-            if (!Harpymodloader.OVERWRITE_ROLES.contains(role))
-                return true;
-            if (role.canUseKiller())
-                return false;
-            if (role.isInnocent())
-                return true;
-            return false;
-        });
 
-        Collections.shuffle(shuffledKillerRoles);
-        Collections.shuffle(shuffledKillerRoles);
-
-        int roleCount = shuffledKillerRoles.size();
+        // 构建角色权重映射，每个角色只添加一次
+        HashMap<Role, Float> roleWeights = new HashMap<>();
         for (Role role : shuffledKillerRoles) {
-            int roleSpecificDesireCount = Math.min(
-                    (int) Math.max(Math.round((double) playersForKillerRoles.size() / roleCount), 1), desiredRoleCount);
-            if (Harpymodloader.ROLE_MAX.containsKey(role.identifier())) {
-                roleSpecificDesireCount = Harpymodloader.ROLE_MAX.get(role.identifier());
-            }
-
-            findAndAssignPlayers(roleSpecificDesireCount, role, playersForKillerRoles, gameWorldComponent, serverWorld,
-                    roleAssignments);
-            playersForKillerRoles.removeIf(player -> {
-                Role role1 = roleAssignments.getOrDefault(player, null);
-                if (role1 == null)
-                    return true;
-                if (Harpymodloader.OVERWRITE_ROLES.contains(role))
-                    return false;
-                return true;
-            });
-        }
-    }
-
-    private static int findAndAssignPlayers(int desiredRoleCount, Role role, @NotNull List<ServerPlayerEntity> players,
-            GameWorldComponent gameWorldComponent, World world, Map<ServerPlayerEntity, Role> roleAssignments) {
-
-        ArrayList<ServerPlayerEntity> assignedPlayers = new ArrayList<>();
-
-        // 暂时忽略权重
-
-        // if (Harpymodloader.FORCED_MODDED_ROLE.containsKey(role)) {
-        // for (UUID uuid : Harpymodloader.FORCED_MODDED_ROLE.get(role)) {
-        // PlayerEntity player = world.getPlayerByUuid(uuid);
-        // if (player instanceof ServerPlayerEntity serverPlayer) {
-        // if (players.contains(serverPlayer)) {
-        // assignedPlayers.add(serverPlayer);
-        // --desiredRoleCount;
-        // ModdedWeights.roleRounds.get(role).put(player.getUuid(),
-        // ModdedWeights.roleRounds.get(role).getOrDefault(player.getUuid(), 1) + 1);
-        // }
-        // }
-        // }
-        // }
-        // // 使用 WeightedUtil 重构权重选择逻辑
-        // HashMap<ServerPlayerEntity, Float> weightMap = new HashMap<>();
-        // for (ServerPlayerEntity player : players) {
-        // if (!Harpymodloader.FORCED_MODDED_ROLE_FLIP.containsKey(player.getUuid())
-        // &&
-        // Harpymodloader.OVERWRITE_ROLES.contains(gameWorldComponent.getRole(player)))
-        // {
-        // float weight = (float) Math
-        // .exp((-ModdedWeights.roleRounds.get(role).getOrDefault(player.getUuid(), 1) *
-        // 4));
-        // if (!gameWorldComponent.areWeightsEnabled()) {
-        // weight = 1.0F;
-        // }
-
-        // weightMap.put(player, weight);
-        // }
-        // }
-
-        // WeightedUtil<ServerPlayerEntity> weightedUtil = new
-        // WeightedUtil<>(weightMap);
-
-        Random random = new Random();
-        // 选择指定数量的玩家
-        for (int i = 0; i < desiredRoleCount && !players.isEmpty(); ++i) {
-            int randomIdx = random.nextInt(players.size());
-            ServerPlayerEntity selectedPlayer = players.get(randomIdx);
-            players.remove(randomIdx);
-            if (selectedPlayer != null) {
-                assignedPlayers.add(selectedPlayer);
-                // // 更新角色轮次计数
-                // ModdedWeights.roleRounds.get(role).put(selectedPlayer.getUuid(),
-                // ModdedWeights.roleRounds.get(role).getOrDefault(selectedPlayer.getUuid(), 1)
-                // + 1);
-            }
-        }
-
-        int i = 0;
-        for (ServerPlayerEntity player : assignedPlayers) {
-            // 不直接添加角色，而是记录到角色分配映射表中
-            // roleAssignments.remove(player);
-            roleAssignments.put(player, role);
-            i++;
-        }
-        return i;
-    }
-
-    public int assignVannilaRoles(ServerWorld serverWorld, GameWorldComponent gameWorldComponent,
-            List<ServerPlayerEntity> players, Map<ServerPlayerEntity, Role> roleAssignments) {
-        ScoreboardRoleSelectorComponent roleSelector = ScoreboardRoleSelectorComponent.KEY
-                .get(serverWorld.getScoreboard());
-
-        int killerCount = SetRoleCountCommand.getKillerCount(players.size());
-        int vigilanteCount = SetRoleCountCommand.getVigilanteCount(players.size());
-        killerCount = Math.min(1, killerCount);
-        vigilanteCount = Math.min(1, vigilanteCount);
-        List<ServerPlayerEntity> playersForVigilante = new ArrayList<>(players);
-        playersForVigilante.removeIf(player -> Harpymodloader.FORCED_MODDED_ROLE_FLIP.containsKey(player.getUuid()));
-
-        List<ServerPlayerEntity> playersForKiller = new ArrayList<>(players);
-
-        // 处理杀手分配
-        List<ServerPlayerEntity> forcedKillers = new ArrayList<>();
-        List<ServerPlayerEntity> selectedKillers = new ArrayList<>();
-        int actualKillerCount = Math.min(killerCount, playersForKiller.size());
-
-        playersForKiller.removeIf(player -> {
-            if (Harpymodloader.FORCED_MODDED_ROLE_FLIP.containsKey(player.getUuid())) {
-                if (Harpymodloader.FORCED_MODDED_ROLE_FLIP.get(player.getUuid()).canUseKiller()) {
-                    forcedKillers.add(player);
-                    return false;
-                } else {
-                    return true;
+            if (HarpyModLoaderConfig.HANDLER.instance().useCustomRoleWeights) {
+                float customWeight = ModdedWeights.getRoleWeight( role);
+                if ( customWeight > 0) {
+                    roleWeights.put(role, customWeight);
                 }
+            } else {
+                roleWeights.put(role, 1f);
             }
-            return false;
-        });
-
-        // 随机选择杀手
-        List<ServerPlayerEntity> shuffledPlayersForKillers = new ArrayList<>(playersForKiller);
-        Collections.shuffle(shuffledPlayersForKillers);
-        shuffledPlayersForKillers.removeIf((player)->{
-            return player == null;
-        });
-        shuffledPlayersForKillers.addAll(0, forcedKillers);
-        for (int i = 0; i < actualKillerCount && i < shuffledPlayersForKillers.size(); i++) {
-            selectedKillers.add(shuffledPlayersForKillers.get(i));
         }
 
-        // 记录到角色分配映射表
-        for (ServerPlayerEntity player : selectedKillers) {
-            roleAssignments.remove(player);
-            roleAssignments.put(player, TMMRoles.KILLER);
+        // 创建临时角色计数映射，用于本次游戏的角色分配
+        Map<Identifier, Integer> tempRoleCounts = new HashMap<>();
+        for (Role role : shuffledKillerRoles) {
+            tempRoleCounts.put(role.identifier(), Harpymodloader.ROLE_MAX.getOrDefault(role.identifier(), 1));
         }
 
-        // 处理义警分配
-        List<ServerPlayerEntity> selectedVigilantes = new ArrayList<>();
-        int actualVigilanteCount = Math.min(vigilanteCount, playersForVigilante.size());
+        WeightedUtil<Role> killer = new WeightedUtil<>(roleWeights);
 
-        // 随机选择义警
-        List<ServerPlayerEntity> shuffledPlayersForVigilantes = new ArrayList<>(playersForVigilante);
-        Collections.shuffle(shuffledPlayersForVigilantes);
+        List <Role> killerRoles = new ArrayList<>();
+        for (int i = 0; i < killerCount; i++) {
+            Role selectedRole = selectRoleWithCountCheck(killer, "killer", tempRoleCounts);
+            if (selectedRole != null) {
+                killerRoles.add(selectedRole);
+            }
+        }
+        return new Pair<>(killerRoles, Math.max(0, killerCount - killerRoles.size()));
+    }
 
-        for (int i = 0; i < actualVigilanteCount && i < shuffledPlayersForVigilantes.size(); i++) {
-            selectedVigilantes.add(shuffledPlayersForVigilantes.get(i));
+    public Pair<List<Role>,Integer> assignVigilantesReplacingRoles(int killerCount) {
+
+        if (killerCount <= 0) return new Pair<>(new ArrayList<>(), 0);
+        ArrayList<Role> shuffledVigilantesRoles = new ArrayList<>(TMMRoles.ROLES.values());
+        shuffledVigilantesRoles.removeIf(
+                role -> !role.isVigilanteTeam()
+                        || HarpyModLoaderConfig.HANDLER.instance().disabled.contains(role.identifier().toString()));
+
+        // 构建角色权重映射，每个角色只添加一次
+        HashMap<Role, Float> roleWeights = new HashMap<>();
+        for (Role role : shuffledVigilantesRoles) {
+            if (HarpyModLoaderConfig.HANDLER.instance().useCustomRoleWeights) {
+                float customWeight = ModdedWeights.getRoleWeight( role);
+                if ( customWeight > 0) {
+                    roleWeights.put(role, customWeight);
+                }
+            } else {
+                roleWeights.put(role, 1f);
+            }
         }
 
-        // 记录到角色分配映射表
-        for (ServerPlayerEntity player : selectedVigilantes) {
-            roleAssignments.remove(player);
-            roleAssignments.put(player, TMMRoles.VIGILANTE);
+        // 创建临时角色计数映射，用于本次游戏的角色分配
+        Map<Identifier, Integer> tempRoleCounts = new HashMap<>();
+        for (Role role : shuffledVigilantesRoles) {
+            tempRoleCounts.put(role.identifier(), Harpymodloader.ROLE_MAX.getOrDefault(role.identifier(), 1));
         }
 
-        int total = selectedKillers.size();
-        return total;
+        WeightedUtil<Role> vigilanted = new WeightedUtil<>(roleWeights);
+
+        List <Role> vigilanteRoles = new ArrayList<>();
+        for (int i = 0; i < killerCount; i++) {
+            Role selectedRole = selectRoleWithCountCheck(vigilanted, "vigilante", tempRoleCounts);
+            if (selectedRole != null) {
+                vigilanteRoles.add(selectedRole);
+            }
+        }
+        return new Pair<>(vigilanteRoles, Math.max(0, killerCount - vigilanteRoles.size()));
+    }
+
+    public Pair<List<Role>,Integer> assignNatureReplacingRoles(int natureCount) {
+
+        if (natureCount <= 0) return new Pair<>(new ArrayList<>(), 0);
+        ArrayList<Role> shuffledNatureRoles = new ArrayList<>(TMMRoles.ROLES.values());
+        shuffledNatureRoles.removeIf(
+                role -> Harpymodloader.VANNILA_ROLES.contains(role) || role.canUseKiller() || role.isInnocent()
+                        || role == TMMRoles.CIVILIAN
+                        || HarpyModLoaderConfig.HANDLER.instance().disabled.contains(role.identifier().toString()));
+
+        // 构建角色权重映射，每个角色只添加一次
+        HashMap<Role, Float> roleWeights = new HashMap<>();
+        for (Role role : shuffledNatureRoles) {
+            if (HarpyModLoaderConfig.HANDLER.instance().useCustomRoleWeights) {
+                float customWeight = ModdedWeights.getRoleWeight( role);
+                if ( customWeight > 0) {
+                    roleWeights.put(role, customWeight);
+                }
+            } else {
+                roleWeights.put(role, 1f);
+            }
+        }
+
+        // 创建临时角色计数映射，用于本次游戏的角色分配
+        Map<Identifier, Integer> tempRoleCounts = new HashMap<>();
+        for (Role role : shuffledNatureRoles) {
+            tempRoleCounts.put(role.identifier(), Harpymodloader.ROLE_MAX.getOrDefault(role.identifier(), 1));
+        }
+
+        WeightedUtil<Role> vigilanted = new WeightedUtil<>(roleWeights);
+
+        List <Role> natureRoles = new ArrayList<>();
+        for (int i = 0; i < natureCount; i++) {
+            Role selectedRole = selectRoleWithCountCheck(vigilanted, "nature", tempRoleCounts);
+            if (selectedRole != null) {
+                natureRoles.add(selectedRole);
+            }
+        }
+        return new Pair<>(natureRoles, Math.max(0, natureCount - natureRoles.size()));
+    }
+
+    /**
+     * 根据权重选择角色并检查角色计数
+     * @param weightedUtil 加权工具
+     * @param roleType 角色类型（"killer", "civilian", "vigilante", "nature"）
+     * @param tempRoleCounts 临时角色计数映射
+     * @return 选中的角色，如果没有可用角色则返回null
+     */
+    private Role selectRoleWithCountCheck(WeightedUtil<Role> weightedUtil, String roleType, Map<Identifier, Integer> tempRoleCounts) {
+        if (weightedUtil.isEmpty()) {
+            return null;
+        }
+
+        // 选择一个角色
+        Role selectedRole = weightedUtil.selectRandomKeyBasedOnWeights();
+        if (selectedRole == null) {
+            return null;
+        }
+
+        // 检查该角色的剩余计数
+        int remainingCount = tempRoleCounts.getOrDefault(selectedRole.identifier(), Harpymodloader.ROLE_MAX.getOrDefault(selectedRole.identifier(), 1));
+        if (remainingCount > 0) {
+            // 减少该角色的临时计数
+            tempRoleCounts.put(selectedRole.identifier(), remainingCount - 1);
+            // 如果计数变为0，从加权工具中移除该角色
+            if (remainingCount - 1 <= 0) {
+                weightedUtil.removeKey(selectedRole);
+            }
+            return selectedRole;
+        } else {
+            // 如果角色计数已用完，从加权工具中移除该角色并递归调用
+            weightedUtil.removeKey(selectedRole);
+            return selectRoleWithCountCheck(weightedUtil, roleType, tempRoleCounts);
+        }
     }
 }

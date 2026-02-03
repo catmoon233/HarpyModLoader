@@ -14,6 +14,7 @@ public class SetRoleCountCommand {
     // 用于存储手动设置的杀手和侦探数量
     public static int forcedKillerCount = 0; // 0表示使用自动计算
     public static int forcedVigilanteCount = 0; // 0表示使用自动计算
+    public static int forcedNatureCount = 0; // 0表示使用自动计算
 
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
         dispatcher.register(CommandManager.literal("setRoleCount")
@@ -24,8 +25,23 @@ public class SetRoleCountCommand {
                 .then(CommandManager.literal("detective")
                         .then(CommandManager.argument("count", IntegerArgumentType.integer(0))
                                 .executes(SetRoleCountCommand::setVigilanteCount)))
+                .then(CommandManager.literal("nature")
+                        .then(CommandManager.argument("count", IntegerArgumentType.integer(0))
+                                .executes(SetRoleCountCommand::setNatureCount)))
                 .then(CommandManager.literal("reset")
-                        .executes(SetRoleCountCommand::resetCounts)));
+                                .executes(SetRoleCountCommand::resetCounts))
+                        .executes(SetRoleCountCommand::resetCounts));
+    }
+    private static int setNatureCount(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+        int count = IntegerArgumentType.getInteger(context, "count");
+        forcedNatureCount = count;
+        if (count == 0) {
+            context.getSource().sendFeedback(() -> Text.translatable("commands.setrolecount.nature.auto"), false);
+        } else {
+            context.getSource().sendFeedback(() -> Text.translatable("commands.setrolecount.nature.set", count),
+                    false);
+        }
+        return 1;
     }
 
     private static int setKillerCount(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
@@ -54,7 +70,7 @@ public class SetRoleCountCommand {
     private static int resetCounts(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         forcedKillerCount = 0;
         forcedVigilanteCount = 0;
-        context.getSource().sendFeedback(() -> Text.translatable("commands.setrolecount.reset"), false);
+        forcedNatureCount = 0;
         return 1;
     }
 
@@ -73,6 +89,15 @@ public class SetRoleCountCommand {
             return Math.min(forcedVigilanteCount, playerCount); // 确保不超过玩家总数
         } else {
             return playerCount / 6;
+
         }
     }
+    public static int getNatureCount(int playerCount) {
+        if (forcedNatureCount > 0) {
+            return Math.min(forcedNatureCount, playerCount); // 确保不超过玩家总数
+        } else {
+            return Math.max(1,playerCount / 8);
+
+        }
+        }
 }

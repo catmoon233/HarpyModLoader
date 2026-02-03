@@ -35,5 +35,13 @@
   "commands.changerole.player.notification": "您的角色已更改为 %1$s",
 
   "announcement.modifier": "附加词条 ",
-  "announcement.no_modifiers": "没有附加词条"
+  "announcement.no_modifiers": "没有附加词条",
+
+  "commands.tmm.setroleweight.success": "角色 %s 的权重已设置为 %d",
+  "commands.tmm.setroleweight.failed": "设置角色权重失败",
+  
+  "commands.tmm.togglecustomroleweights.success": "自定义角色权重已%s",
+  
+  "commands.tmm.checkweights.entry": "%s: 杀手=%s, 警卫=%s",
+  "commands.tmm.checkweights.header": "=== 玩家权重 ==="
 }
