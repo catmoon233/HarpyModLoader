@@ -31,6 +31,7 @@ import org.agmas.harpymodloader.config.HarpyModLoaderConfig;
 import org.agmas.harpymodloader.events.ModdedRoleAssigned;
 import org.agmas.harpymodloader.events.ModifierAssigned;
 import org.agmas.harpymodloader.events.ResetPlayerEvent;
+import org.agmas.harpymodloader.events.GameInitializeEvent;
 import org.agmas.harpymodloader.commands.SetRoleCountCommand;
 import org.agmas.harpymodloader.modifiers.HMLModifiers;
 
@@ -56,7 +57,8 @@ public class ModdedMurderGameMode extends MurderGameMode {
     @Override
     public void initializeGame(ServerWorld serverWorld, GameWorldComponent gameWorldComponent,
             List<ServerPlayerEntity> players) {
-
+        GameInitializeEvent.EVENT.invoker().initializeGame(serverWorld, gameWorldComponent, players);
+        
         Harpymodloader.refreshRoles();
 
         HarpyModLoaderConfig.HANDLER.load();
