@@ -38,7 +38,7 @@ public class Modifier {
     }
 
     public MutableText getName(boolean color) {
-        Log.info(LogCategory.GENERAL, Language.getInstance().hasTranslation("announcement.modifier." + identifier().getPath())+"");
+        // Log.info(LogCategory.GENERAL, Language.getInstance().hasTranslation("announcement.modifier." + identifier().getPath())+"");
         if (!Language.getInstance().hasTranslation("announcement.modifier." + identifier().toTranslationKey()) && Language.getInstance().hasTranslation("announcement.modifier." + identifier().getPath())) {
             return Text.translatable("announcement.modifier." + identifier().getPath());
         }
