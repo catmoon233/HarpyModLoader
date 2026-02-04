@@ -203,14 +203,13 @@ public class ModdedMurderGameMode extends MurderGameMode {
     private void addPlayersToTeam(ServerCommandSource source, List<ServerPlayerEntity> players, String teamName) {
         try {
             // 首先尝试创建队伍（如果不存在）
-            var scb = source.getServer().getScoreboard();
-            if (scb.getTeam(teamName) == null) {
-                scb.addTeam(teamName);
-            }
-            var team = scb.getTeam(teamName);
+            source.getServer().getCommandManager().executeWithPrefix(source,
+                    "team add " + teamName + " " + teamName + "_team");
+
             // 将所有玩家添加到队伍中
             for (ServerPlayerEntity player : players) {
-                scb.addScoreHolderToTeam(player.getNameForScoreboard(), team);
+                source.getServer().getCommandManager().executeWithPrefix(source,
+                        "team join " + teamName + " " + player.getName().getString());
             }
         } catch (Exception e) {
             Log.warn(LogCategory.GENERAL, "Failed to manage team: " + teamName + ", error: " + e.getMessage());
@@ -221,13 +220,10 @@ public class ModdedMurderGameMode extends MurderGameMode {
     private void removePlayersFromTeam(ServerCommandSource source, String teamName) {
         try {
             // 将所有玩家从队伍中移除
-            var scb = source.getServer().getScoreboard();
-            if (scb.getTeam(teamName) != null) {
-                var team = scb.getTeam(teamName);
-                team.getPlayerList().clear();
-                // 删除队伍
-                scb.removeTeam(team);
-            }
+            source.getServer().getCommandManager().executeWithPrefix(source, "team empty " + teamName);
+
+            // 删除队伍
+            source.getServer().getCommandManager().executeWithPrefix(source, "team remove " + teamName);
         } catch (Exception e) {
             Log.warn(LogCategory.GENERAL, "Failed to remove team: " + teamName + ", error: " + e.getMessage());
         }
