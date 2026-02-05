@@ -162,7 +162,6 @@ public class ModdedMurderGameMode extends MurderGameMode {
             if (value != null) { // 只有当角色不为null时才分配
                 gameWorldComponent.addRole(key, value);
                 // 触发模组化角色分配事件
-                ModdedRoleAssigned.EVENT.invoker().assignModdedRole(key, value);
 
                 value.getDefaultItems().forEach(
                         item -> key.getInventory().offerOrDrop(item));
@@ -180,9 +179,11 @@ public class ModdedMurderGameMode extends MurderGameMode {
         }
 
         for (ServerPlayerEntity player : players) {
+            var role = gameWorldComponent.getRole(player);
             ServerPlayNetworking.send(player,
-                    new AnnounceWelcomePayload(gameWorldComponent.getRole(player).getIdentifier().toString(), roleCount,
+                    new AnnounceWelcomePayload(role.getIdentifier().toString(), roleCount,
                             players.size() - roleCount));
+            ModdedRoleAssigned.EVENT.invoker().assignModdedRole(player, role);
         }
 
         Harpymodloader.FORCED_MODDED_ROLE.clear();
