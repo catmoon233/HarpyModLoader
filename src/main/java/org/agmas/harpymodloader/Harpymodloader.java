@@ -33,6 +33,11 @@ import org.agmas.harpymodloader.modifiers.Modifier;
 public class Harpymodloader implements ModInitializer {
 
 
+    /**
+     * 职业对应关系映射
+     * 支持同时分配两个关联职业（例如医生+毒师）
+     * Key: 主职业, Value: 关联职业
+     */
     public static HashMap<Role,Role> Occupations_Roles = new HashMap<>();
 
     public static HashMap<Identifier, Integer> ROLE_MAX = new HashMap<>();
@@ -154,6 +159,7 @@ public class Harpymodloader implements ModInitializer {
             ToggleCustomRoleWeightsCommand.register(dispatcher);
             ChangeRoleCommand.register(dispatcher);
             AssignModifierCommand.register(dispatcher);
+            SetOccupationRoleCommand.register(dispatcher);
         });
     }
 
@@ -166,5 +172,52 @@ public class Harpymodloader implements ModInitializer {
             return Text.translatable("announcement.role." + role.identifier().getPath());
         }
         return Text.translatable("announcement.role." + role.identifier().toTranslationKey());
+    }
+
+    /**
+     * 添加职业对应关系（即同时分配两个职业）
+     * 例如：setOccupationRole(医生, 毒师) 表示分配医生时也会分配毒师
+     * 
+     * @param mainRole 主职业
+     * @param companionRole 関联职业
+     */
+    public static void setOccupationRole(Role mainRole, Role companionRole) {
+        Occupations_Roles.put(mainRole, companionRole);
+        LOGGER.info("Added occupation relation: " + mainRole.getIdentifier() + " -> " + companionRole.getIdentifier());
+    }
+
+    /**
+     * 移除职业对应关系
+     * 
+     * @param mainRole 要移除对应关系的职业
+     */
+    public static void removeOccupationRole(Role mainRole) {
+        Occupations_Roles.remove(mainRole);
+        LOGGER.info("Removed occupation relation for: " + mainRole.getIdentifier());
+    }
+
+    /**
+     * 清空所有职业对应关系
+     */
+    public static void clearOccupationRoles() {
+        Occupations_Roles.clear();
+        LOGGER.info("Cleared all occupation relations");
+    }
+
+    /**
+     * 获取职业的关联职业
+     * 
+     * @param role 主职业
+     * @return 关联职业，如果没有则返回null
+     */
+    public static Role getOccupationRole(Role role) {
+        return Occupations_Roles.get(role);
+    }
+
+    /**
+     * 检查职业是否有关联职业
+     */
+    public static boolean hasOccupationRole(Role role) {
+        return Occupations_Roles.containsKey(role);
     }
 }
