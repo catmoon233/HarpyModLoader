@@ -56,6 +56,13 @@ dependencies {
     modImplementation "org.ladysnake.cardinal-components-api:cardinal-components-world:${project.cca_version}"
     modImplementation "org.ladysnake.cardinal-components-api:cardinal-components-scoreboard:${project.cca_version}"
     modImplementation "dev.isxander:yet-another-config-lib:${project.yacl_version}"
+    
+    // 测试依赖
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.10.0'
+    testImplementation 'org.junit.jupiter:junit-jupiter-params:5.10.0'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.10.0'
+    testImplementation 'org.mockito:mockito-core:5.7.0'
+    testImplementation 'org.mockito:mockito-junit-jupiter:5.7.0'
 }
 
 processResources {
@@ -81,6 +88,35 @@ tasks.withType(JavaCompile).configureEach {
     if (targetJavaVersion >= 10 || JavaVersion.current().isJava10Compatible()) {
         it.options.release.set(targetJavaVersion)
     }
+}
+
+// 测试配置
+test {
+    useJUnitPlatform()
+    
+    // JVM参数
+    jvmArgs '-Xmx2G'
+    
+    // 测试报告
+    reports {
+        junitXml.required.set(true)
+        html.required.set(true)
+    }
+    
+    // 显示测试进度
+    testLogging {
+        events "passed", "skipped", "failed"
+        exceptionFormat "full"
+        showStandardStreams = true
+    }
+    
+    // 并行测试
+    maxParallelForks = Runtime.runtime.availableProcessors().intdiv(2) ?: 1
+    
+    // 超时设置
+    // timeout {
+    //     afterTest.set(java.time.Duration.ofMinutes(5))
+    // }
 }
 
 java {

@@ -43,6 +43,23 @@ public class RoleAssignmentManager {
         for (Role role : roles) {
             Role companion = getCompanionRole(role);
             if (companion != null) {
+                if (companion.isInnocent() || companion.canUseKiller() || (!companion.canUseKiller() && !companion.isInnocent())) {
+                    final boolean[] isRemoved = {false};
+                    roles.removeIf(r -> {
+                        if (!isRemoved[0]) {
+                            boolean conditionMet = (companion.isInnocent() && r.isInnocent()) ||
+                                                   (companion.canUseKiller() && r.canUseKiller()) ||
+                                                   (!companion.canUseKiller() && !companion.isInnocent() &&
+                                                    !r.canUseKiller() && !r.isInnocent());
+                            
+                            if (conditionMet && companionRoles.stream().noneMatch(rd -> rd.getIdentifier().equals(r.getIdentifier()))) {
+                                isRemoved[0] = true;
+                                return true;
+                            }
+                        }
+                        return false;
+                    });
+                }
                 companionRoles.add(companion);
             }
         }

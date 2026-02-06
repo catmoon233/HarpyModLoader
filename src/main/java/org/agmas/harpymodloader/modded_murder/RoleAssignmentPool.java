@@ -18,11 +18,13 @@ public class RoleAssignmentPool {
     private final WeightedUtil<Role> roleWeights;
     private final Map<Identifier, Integer> roleCountMap;
     private final String poolName;
+    private final boolean allowUnlimitedRepeats;
 
-    private RoleAssignmentPool(String poolName, WeightedUtil<Role> roleWeights, Map<Identifier, Integer> roleCountMap) {
+    private RoleAssignmentPool(String poolName, WeightedUtil<Role> roleWeights, Map<Identifier, Integer> roleCountMap, boolean allowUnlimitedRepeats) {
         this.poolName = poolName;
         this.roleWeights = roleWeights;
         this.roleCountMap = roleCountMap;
+        this.allowUnlimitedRepeats = allowUnlimitedRepeats;
     }
 
     /**
@@ -33,6 +35,25 @@ public class RoleAssignmentPool {
      * @return 创建的RoleAssignmentPool实例
      */
     public static RoleAssignmentPool create(String poolName, Predicate<Role> filter) {
+        return createInternal(poolName, filter, false);
+    }
+
+    /**
+     * 创建一个支持无限重复的角色分配池
+     * 同一个角色可以被多次选中
+     * 
+     * @param poolName 池的名称（用于日志）
+     * @param filter   角色过滤条件（返回true表示该角色应该被包含在池中）
+     * @return 创建的RoleAssignmentPool实例
+     */
+    public static RoleAssignmentPool createUnlimited(String poolName, Predicate<Role> filter) {
+        return createInternal(poolName, filter, true);
+    }
+
+    /**
+     * 内部方法：创建角色分配池
+     */
+    private static RoleAssignmentPool createInternal(String poolName, Predicate<Role> filter, boolean allowUnlimitedRepeats) {
         // 获取所有符合条件的角色
         ArrayList<Role> availableRoles = new ArrayList<>(TMMRoles.ROLES.values());
         availableRoles.removeIf(role -> 
@@ -53,10 +74,16 @@ public class RoleAssignmentPool {
         // 构建计数映射
         Map<Identifier, Integer> countMap = new HashMap<>();
         for (Role role : availableRoles) {
-            countMap.put(role.identifier(), Harpymodloader.ROLE_MAX.getOrDefault(role.identifier(), 1));
+            if (allowUnlimitedRepeats) {
+                // 无限模式：使用大数字表示无限
+                countMap.put(role.identifier(), Integer.MAX_VALUE);
+            } else {
+                // 正常模式：使用ROLE_MAX配置或默认值1
+                countMap.put(role.identifier(), Harpymodloader.ROLE_MAX.getOrDefault(role.identifier(), 1));
+            }
         }
 
-        return new RoleAssignmentPool(poolName, new WeightedUtil<>(roleWeights), countMap);
+        return new RoleAssignmentPool(poolName, new WeightedUtil<>(roleWeights), countMap, allowUnlimitedRepeats);
     }
 
     /**
@@ -121,9 +148,12 @@ public class RoleAssignmentPool {
 
         int remainingCount = roleCountMap.getOrDefault(selectedRole.identifier(), 1);
         if (remainingCount > 0) {
-            roleCountMap.put(selectedRole.identifier(), remainingCount - 1);
-            if (remainingCount - 1 <= 0) {
-                roleWeights.removeKey(selectedRole);
+            // 在无限重复模式下，不减少计数
+            if (!allowUnlimitedRepeats) {
+                roleCountMap.put(selectedRole.identifier(), remainingCount - 1);
+                if (remainingCount - 1 <= 0) {
+                    roleWeights.removeKey(selectedRole);
+                }
             }
             return selectedRole;
         } else {

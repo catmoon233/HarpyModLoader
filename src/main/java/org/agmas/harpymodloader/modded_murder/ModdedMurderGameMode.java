@@ -22,6 +22,7 @@ import net.minecraft.util.Identifier;
 
 import java.util.*;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.agmas.harpymodloader.Harpymodloader;
 import org.agmas.harpymodloader.WeightedUtil;
@@ -337,8 +338,8 @@ public class ModdedMurderGameMode extends MurderGameMode {
             role != TMMRoles.CIVILIAN);
         List<Role> assignedKillers = killerPool.selectRoles(killerCount);
 
-        // 警卫池
-        RoleAssignmentPool vigilantePool = RoleAssignmentPool.create("Vigilante", role ->
+        // 警卫池 - 使用无限重复模式，因为警卫职业数量有限
+        RoleAssignmentPool vigilantePool = RoleAssignmentPool.createUnlimited("Vigilante", role ->
             role.isVigilanteTeam());
         List<Role> assignedVigilantes = vigilantePool.selectRoles(vigilanteCount);
 
@@ -381,12 +382,16 @@ public class ModdedMurderGameMode extends MurderGameMode {
         }
 
         // 创建权重分布用于分配展开后的角色
-        Map<Role, Float> roleWeights = new HashMap<>();
+        Map<Integer,Map.Entry<Role, Float>> roleWeights = new HashMap<>();
+        int index = 0;
         for (Role role : expandedRoles) {
-            roleWeights.put(role, 1f);
+            roleWeights.put(index++, new AbstractMap.SimpleEntry<>(role, 1f));
         }
         
-        WeightedUtil<Role> roleSelector = new WeightedUtil<>(roleWeights);
+        WeightedUtil<Role> roleSelector = new WeightedUtil<>(roleWeights.entrySet()
+        .stream()
+        .collect(Collectors.toMap(a->a.getValue().getKey(), a->a.getValue().getValue()))
+        );
 
         // 分配展开后的角色给未分配的玩家
         for (ServerPlayerEntity player : unassignedPlayers) {
