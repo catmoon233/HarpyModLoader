@@ -88,12 +88,12 @@ public class ModdedMurderGameMode extends MurderGameMode {
         Map<PlayerEntity, Role> roleAssignments = assignRolesToPlayers(serverWorld, players);
 
         // 计算有特殊角色的玩家数量（用于AnnounceWelcomePayload）
-        long roleCount = roleAssignments.values().stream()
-                .filter(role -> role != null && role != TMMRoles.CIVILIAN)
+        long killCount = roleAssignments.values().stream()
+                .filter(role -> role != null && role != TMMRoles.CIVILIAN && role.canUseKiller())
                 .count();
 
         // 分配修饰符
-        int modifierRoleCount = (int) roleCount * HarpyModLoaderConfig.HANDLER.instance().modifierMultiplier;
+        int modifierRoleCount = (int) killCount * HarpyModLoaderConfig.HANDLER.instance().modifierMultiplier;
         assignModifiers(modifierRoleCount, serverWorld, gameWorldComponent, players);
 
         // 统一应用角色分配并触发相应事件
@@ -120,8 +120,8 @@ public class ModdedMurderGameMode extends MurderGameMode {
         for (ServerPlayerEntity player : players) {
             var role = gameWorldComponent.getRole(player);
             ServerPlayNetworking.send(player,
-                    new AnnounceWelcomePayload(role.getIdentifier().toString(), (int) roleCount,
-                            (int) (players.size() - roleCount)));
+                    new AnnounceWelcomePayload(role.getIdentifier().toString(), (int) killCount,
+                            (int) (players.size() - killCount)));
             ModdedRoleAssigned.EVENT.invoker().assignModdedRole(player, role);
         }
 
@@ -288,15 +288,17 @@ public class ModdedMurderGameMode extends MurderGameMode {
             PlayerEntity player = serverWorld.getPlayerByUuid(entry.getKey());
             if (player != null) {
                 Role role = entry.getValue();
-                roleAssignments.put(player, role);
-                
-                // 根据角色类型减少对应的数量需求
-                if (role.canUseKiller()) {
-                    killerCount--;
-                } else if (role.isVigilanteTeam()) {
-                    vigilanteCount--;
-                } else if (!role.isInnocent()) {
-                    natureCount--;
+                if (role!=null) {
+                    roleAssignments.put(player, role);
+
+                    // 根据角色类型减少对应的数量需求
+                    if (role.canUseKiller()) {
+                        killerCount--;
+                    } else if (role.isVigilanteTeam()) {
+                        vigilanteCount--;
+                    } else if (!role.isInnocent()) {
+                        natureCount--;
+                    }
                 }
             }
         }
