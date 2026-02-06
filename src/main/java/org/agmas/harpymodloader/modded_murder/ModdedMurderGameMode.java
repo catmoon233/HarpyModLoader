@@ -80,6 +80,7 @@ public class ModdedMurderGameMode extends MurderGameMode {
         // 执行游戏开始时的函数
         executeFunction(serverWorld.getServer().getCommandSource(), "harpymodloader:start_game");
 
+        Harpymodloader.setRoleMaximum(TMMRoles.VIGILANTE.getIdentifier(),100);
         assignRole(serverWorld, gameWorldComponent, players);
     }
 
