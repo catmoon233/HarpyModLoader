@@ -9,10 +9,9 @@ import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
 import net.minecraft.world.World;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.UUID;
+
+import java.util.*;
+
 import org.agmas.harpymodloader.Harpymodloader;
 import org.agmas.harpymodloader.modifiers.HMLModifiers;
 import org.agmas.harpymodloader.modifiers.Modifier;
@@ -67,18 +66,21 @@ public class WorldModifierComponent implements AutoSyncedComponent, ServerTickin
     }
 
     public ArrayList<Modifier> getModifiers(UUID uuid) {
-
-        if (!modifiers.containsKey(uuid)) modifiers.put(uuid, new ArrayList<>());
-        return this.modifiers.get(uuid);
+        synchronized (this.modifiers) {
+            if (!modifiers.containsKey(uuid)) modifiers.put(uuid, new ArrayList<>());
+            return this.modifiers.get(uuid);
+        }
     }
 
     public List<UUID> getAllWithModifier(Modifier modifier) {
         List<UUID> ret = new ArrayList<>();
-        this.modifiers.forEach((uuid, playerModifier) -> {
-            if (playerModifier.contains(modifier)) {
-                ret.add(uuid);
-            }
-        });
+        synchronized (this.modifiers) {
+            this.modifiers.forEach((uuid, playerModifier) -> {
+                if (playerModifier.contains(modifier)) {
+                    ret.add(uuid);
+                }
+            });
+        }
         return ret;
     }
 
@@ -92,7 +94,9 @@ public class WorldModifierComponent implements AutoSyncedComponent, ServerTickin
     }
 
     public void removeModifier(UUID player, Modifier modifier) {
-        getModifiers(player).remove(modifier);
+        synchronized (this.modifiers) {
+            getModifiers(player).remove(modifier);
+        }
         this.sync();
     }
     public void addModifier(UUID player, Modifier modifier) {
@@ -112,9 +116,17 @@ public class WorldModifierComponent implements AutoSyncedComponent, ServerTickin
 
     @Override
     public void writeToNbt(NbtCompound nbtCompound, RegistryWrapper.WrapperLookup wrapperLookup) {
-
-        for (Modifier modifier : HMLModifiers.MODIFIERS) {
-            nbtCompound.put(modifier.identifier().toString(), this.nbtFromUuidList(getAllWithModifier(modifier)));
+        synchronized (this.modifiers) {
+            for (Modifier modifier : HMLModifiers.MODIFIERS) {
+                // 在同步块内直接查找，避免嵌套同步调用
+                List<UUID> uuidsWithModifier = new ArrayList<>();
+                for (Map.Entry<UUID, ArrayList<Modifier>> entry : this.modifiers.entrySet()) {
+                    if (entry.getValue().contains(modifier)) {
+                        uuidsWithModifier.add(entry.getKey());
+                    }
+                }
+                nbtCompound.put(modifier.identifier().toString(), this.nbtFromUuidList(uuidsWithModifier));
+            }
         }
     }
 

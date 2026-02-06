@@ -33,6 +33,7 @@ import org.agmas.harpymodloader.events.ModifierAssigned;
 import org.agmas.harpymodloader.events.ResetPlayerEvent;
 import org.agmas.harpymodloader.commands.SetRoleCountCommand;
 import org.agmas.harpymodloader.modifiers.HMLModifiers;
+import org.agmas.harpymodloader.modifiers.Modifier;
 
 public class ModdedMurderGameMode extends MurderGameMode {
 
@@ -173,6 +174,10 @@ public class ModdedMurderGameMode extends MurderGameMode {
             List<ServerPlayerEntity> players) {
         WorldModifierComponent worldModifierComponent = WorldModifierComponent.KEY.get(serverWorld);
         worldModifierComponent.getModifiers().clear();
+        
+        // 使用临时映射存储要添加的修饰符，避免在遍历过程中修改数据结构
+        Map<UUID, List<Modifier>> tempModifierAssignments = new HashMap<>();
+        
         int killerMods = (int) HMLModifiers.MODIFIERS.stream().filter(modifier -> modifier.killerOnly).count();
         HMLModifiers.MODIFIERS.forEach((mod) -> {
             int playersAssigned = 0;
@@ -190,7 +195,8 @@ public class ModdedMurderGameMode extends MurderGameMode {
             if (Harpymodloader.FORCED_MODDED_MODIFIER.containsKey(mod)) {
                 for (ServerPlayerEntity player : shuffledPlayers) {
                     if (Harpymodloader.FORCED_MODDED_MODIFIER.get(mod).contains(player.getUuid())) {
-                        worldModifierComponent.addModifier(player.getUuid(), mod);
+                        // 临时存储，稍后统一添加
+                        tempModifierAssignments.computeIfAbsent(player.getUuid(), k -> new ArrayList<>()).add(mod);
                         ModifierAssigned.EVENT.invoker().assignModifier(player, mod);
                         playersAssigned++;
                     }
@@ -246,12 +252,25 @@ public class ModdedMurderGameMode extends MurderGameMode {
                     continue;
                 }
 
-                worldModifierComponent.addModifier(player.getUuid(), mod);
+                // 临时存储，稍后统一添加
+                tempModifierAssignments.computeIfAbsent(player.getUuid(), k -> new ArrayList<>()).add(mod);
                 ModifierAssigned.EVENT.invoker().assignModifier(player, mod);
                 playersAssigned++;
             }
 
         });
+        
+        // 统一将临时存储的修饰符添加到组件中
+        for (Map.Entry<UUID, List<Modifier>> entry : tempModifierAssignments.entrySet()) {
+            UUID playerUuid = entry.getKey();
+            for (Modifier mod : entry.getValue()) {
+                worldModifierComponent.addModifier(playerUuid, mod);
+            }
+        }
+        
+        // 等所有修饰符都添加完成后，再同步整个组件
+        worldModifierComponent.sync();
+        
         for (ServerPlayerEntity player : players) {
             if (!worldModifierComponent.getModifiers(player).isEmpty()) {
                 MutableText modifiersText = Text.translatable("announcement.modifier").formatted(Formatting.GRAY)
