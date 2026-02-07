@@ -53,7 +53,8 @@ public class ModdedMurderGameMode extends MurderGameMode {
         Harpymodloader.FORCED_MODDED_MODIFIER.clear();
         Harpymodloader.FORCED_MODDED_ROLE_FLIP.clear();
         WorldModifierComponent worldModifierComponent = WorldModifierComponent.KEY.get(serverWorld);
-        worldModifierComponent.getModifiers().clear();
+        worldModifierComponent.modifiers.clear();
+        worldModifierComponent.sync();
         super.finalizeGame(serverWorld, gameWorldComponent);
     }
 
