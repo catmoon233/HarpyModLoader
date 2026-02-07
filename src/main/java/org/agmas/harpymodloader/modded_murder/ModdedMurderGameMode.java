@@ -21,7 +21,6 @@ import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 
 import java.util.*;
-import java.util.UUID;
 
 import org.agmas.harpymodloader.Harpymodloader;
 import org.agmas.harpymodloader.WeightedUtil;
@@ -52,7 +51,8 @@ public class ModdedMurderGameMode extends MurderGameMode {
         Harpymodloader.FORCED_MODDED_MODIFIER.clear();
         Harpymodloader.FORCED_MODDED_ROLE_FLIP.clear();
         WorldModifierComponent worldModifierComponent = WorldModifierComponent.KEY.get(serverWorld);
-        worldModifierComponent.getModifiers().clear();
+        worldModifierComponent.modifiers.clear();
+        worldModifierComponent.sync();
         super.finalizeGame(serverWorld, gameWorldComponent);
     }
 
