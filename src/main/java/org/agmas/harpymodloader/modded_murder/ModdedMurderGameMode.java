@@ -24,6 +24,7 @@ import java.util.*;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import net.minecraft.util.PathUtil;
 import org.agmas.harpymodloader.Harpymodloader;
 import org.agmas.harpymodloader.WeightedUtil;
 import org.agmas.harpymodloader.component.WorldModifierComponent;
@@ -340,7 +341,7 @@ public class ModdedMurderGameMode extends MurderGameMode {
         List<Role> assignedKillers = killerPool.selectRoles(killerCount);
 
         // 警卫池 - 使用无限重复模式，因为警卫职业数量有限
-        RoleAssignmentPool vigilantePool = RoleAssignmentPool.createUnlimited("Vigilante", role ->
+        RoleAssignmentPool vigilantePool = RoleAssignmentPool.create("Vigilante", role ->
             role.isVigilanteTeam());
         List<Role> assignedVigilantes = vigilantePool.selectRoles(vigilanteCount);
 
@@ -372,7 +373,11 @@ public class ModdedMurderGameMode extends MurderGameMode {
         allRoles.addAll(assignedCivilians);
 
         // 展开关联角色
-        List<Role> expandedRoles = RoleAssignmentManager.expandWithCompanionRoles(allRoles);
+        List<RoleInstant> roleInstantList = new ArrayList<>();
+        for (Role role : allRoles) {
+            roleInstantList.add(new RoleInstant(UUID.randomUUID(), role));
+        }
+        List<RoleInstant> expandedRoles = RoleAssignmentManager.expandWithCompanionRoles(roleInstantList);
 
         // 第五步：为未分配的玩家分配角色
         List<ServerPlayerEntity> unassignedPlayers = new ArrayList<>();
@@ -383,20 +388,26 @@ public class ModdedMurderGameMode extends MurderGameMode {
         }
 
         // 创建权重分布用于分配展开后的角色
-        Map<Integer,Map.Entry<Role, Float>> roleWeights = new HashMap<>();
-        int index = 0;
-        for (Role role : expandedRoles) {
-            roleWeights.put(index++, new AbstractMap.SimpleEntry<>(role, 1f));
+        List<Map.Entry<RoleInstant, Float>> roleWeights = new ArrayList<>();
+
+        for (var role : expandedRoles) {
+            roleWeights.add( new AbstractMap.SimpleEntry<>(role, 1f));
         }
-        
-        WeightedUtil<Role> roleSelector = new WeightedUtil<>(roleWeights.entrySet()
-        .stream()
-        .collect(Collectors.toMap(a->a.getValue().getKey(), a->a.getValue().getValue()))
-        );
+
+        final var collect = roleWeights
+                .stream()
+                .collect(Collectors.toMap(
+                    a -> a.getKey(),
+                    a -> a.getValue(),
+                    (existing, replacement) -> existing, // 如果键重复，保留第一个值
+                    LinkedHashMap::new));
+        var hashMap = new  HashMap<>( collect);
+        WeightedUtil<RoleInstant> roleSelector = new WeightedUtil<>(hashMap
+                );
 
         // 分配展开后的角色给未分配的玩家
         for (ServerPlayerEntity player : unassignedPlayers) {
-            Role selectedRole = roleSelector.selectRandomKeyBasedOnWeightsAndRemoved();
+            Role selectedRole = roleSelector.selectRandomKeyBasedOnWeightsAndRemoved().role();
             if (selectedRole != null) {
                 roleAssignments.put(player, selectedRole);
             } else {
@@ -406,6 +417,9 @@ public class ModdedMurderGameMode extends MurderGameMode {
         }
 
         return roleAssignments;
+    }
+    public record RoleInstant(UUID uuid, Role role){
+
     }
 
 }

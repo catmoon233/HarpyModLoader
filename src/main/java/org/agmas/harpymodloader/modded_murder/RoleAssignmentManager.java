@@ -32,20 +32,23 @@ public class RoleAssignmentManager {
     /**
      * 展开角色列表：如果角色有关联角色，添加关联角色
      * 例如：[医生] -> [医生, 毒师]
+     * 注意：允许结果列表中包含重复的角色
      * 
      * @param roles 原始角色列表
-     * @return 展开后的角色列表（包含所有关联角色）
+     * @return 展开后的角色列表（包含所有关联角色，允许重复）
      */
-    public static List<Role> expandWithCompanionRoles(List<Role> roles) {
-        List<Role> expandedRoles = new ArrayList<>(roles);
+    public static List<ModdedMurderGameMode.RoleInstant> expandWithCompanionRoles(List<ModdedMurderGameMode.RoleInstant> roles) {
+        List<ModdedMurderGameMode.RoleInstant> expandedRoles = new ArrayList<>(roles);
         List<Role> companionRoles = new ArrayList<>();
+
         
-        for (Role role : roles) {
-            Role companion = getCompanionRole(role);
+        for (var role : expandedRoles) {
+            Role companion = getCompanionRole(role.role());
             if (companion != null) {
                 if (companion.isInnocent() || companion.canUseKiller() || (!companion.canUseKiller() && !companion.isInnocent())) {
                     final boolean[] isRemoved = {false};
-                    roles.removeIf(r -> {
+                    roles.removeIf(ro -> {
+                        var r = ro.role();
                         if (!isRemoved[0]) {
                             boolean conditionMet = (companion.isInnocent() && r.isInnocent()) ||
                                                    (companion.canUseKiller() && r.canUseKiller()) ||
@@ -64,7 +67,7 @@ public class RoleAssignmentManager {
             }
         }
         
-        expandedRoles.addAll(companionRoles);
+        expandedRoles.addAll(companionRoles.stream().map(r -> new ModdedMurderGameMode.RoleInstant(UUID.randomUUID(), r)).toList());
         return expandedRoles;
     }
 
