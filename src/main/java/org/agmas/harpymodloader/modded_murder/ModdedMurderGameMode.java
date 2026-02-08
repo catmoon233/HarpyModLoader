@@ -341,7 +341,7 @@ public class ModdedMurderGameMode extends MurderGameMode {
         List<Role> assignedKillers = killerPool.selectRoles(killerCount);
 
         // 警卫池 - 使用无限重复模式，因为警卫职业数量有限
-        RoleAssignmentPool vigilantePool = RoleAssignmentPool.create("Vigilante", role -> role.isVigilanteTeam());
+        RoleAssignmentPool vigilantePool = RoleAssignmentPool.create("Vigilante", Role::isVigilanteTeam);
         List<Role> assignedVigilantes = vigilantePool.selectRoles(vigilanteCount);
 
         // 中立池
