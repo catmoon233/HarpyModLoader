@@ -51,6 +51,7 @@ public class Harpymodloader implements ModInitializer {
     public static ArrayList<Role> VANNILA_ROLES = new ArrayList<>();
     public static ArrayList<Role> SPECIAL_ROLES = new ArrayList<>();
     public static ArrayList<Role> OVERWRITE_ROLES = new ArrayList<>();
+    public static ArrayList<Identifier> HIDDEN_MODIFIERS = new ArrayList<>();
     public static String MOD_ID = "harpymodloader";
 
     public static GameMode MODDED_GAMEMODE;
@@ -95,10 +96,7 @@ public class Harpymodloader implements ModInitializer {
             refreshRoles();
         }));
     }
-
-    //
-    // re-indexes roles
-    //
+    
     public static void refreshRoles() {
         for (Role role : TMMRoles.ROLES.values()) {
             if (SPECIAL_ROLES.contains(role))
@@ -118,7 +116,6 @@ public class Harpymodloader implements ModInitializer {
         if (!FORCED_MODDED_MODIFIER.containsKey(modifier))
             FORCED_MODDED_MODIFIER.put(modifier, new ArrayList<>());
         FORCED_MODDED_MODIFIER.get(modifier).add(player.getUuid());
-
     }
 
     public static void addToForcedRoles(Role role, PlayerEntity player) {

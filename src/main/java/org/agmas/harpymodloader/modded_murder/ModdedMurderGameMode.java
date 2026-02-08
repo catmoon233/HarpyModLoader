@@ -21,7 +21,6 @@ import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 
 import java.util.*;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 import net.minecraft.util.PathUtil;
@@ -83,7 +82,7 @@ public class ModdedMurderGameMode extends MurderGameMode {
         // 执行游戏开始时的函数
         executeFunction(serverWorld.getServer().getCommandSource(), "harpymodloader:start_game");
 
-        Harpymodloader.setRoleMaximum(TMMRoles.VIGILANTE.getIdentifier(),100);
+        Harpymodloader.setRoleMaximum(TMMRoles.VIGILANTE.getIdentifier(), 100);
         assignRole(serverWorld, gameWorldComponent, players);
     }
 
@@ -178,10 +177,10 @@ public class ModdedMurderGameMode extends MurderGameMode {
             List<ServerPlayerEntity> players) {
         WorldModifierComponent worldModifierComponent = WorldModifierComponent.KEY.get(serverWorld);
         worldModifierComponent.getModifiers().clear();
-        
+
         // 使用临时映射存储要添加的修饰符，避免在遍历过程中修改数据结构
         Map<UUID, List<Modifier>> tempModifierAssignments = new HashMap<>();
-        
+
         int killerMods = (int) HMLModifiers.MODIFIERS.stream().filter(modifier -> modifier.killerOnly).count();
         HMLModifiers.MODIFIERS.forEach((mod) -> {
             int playersAssigned = 0;
@@ -263,7 +262,7 @@ public class ModdedMurderGameMode extends MurderGameMode {
             }
 
         });
-        
+
         // 统一将临时存储的修饰符添加到组件中
         for (Map.Entry<UUID, List<Modifier>> entry : tempModifierAssignments.entrySet()) {
             UUID playerUuid = entry.getKey();
@@ -271,14 +270,14 @@ public class ModdedMurderGameMode extends MurderGameMode {
                 worldModifierComponent.addModifier(playerUuid, mod);
             }
         }
-        
+
         // 等所有修饰符都添加完成后，再同步整个组件
         worldModifierComponent.sync();
-        
+
         for (ServerPlayerEntity player : players) {
             if (!worldModifierComponent.getModifiers(player).isEmpty()) {
                 MutableText modifiersText = Text.translatable("announcement.modifier").formatted(Formatting.GRAY)
-                        .append(Texts.join(worldModifierComponent.getModifiers(player), Text.literal(", "),
+                        .append(Texts.join(worldModifierComponent.getDisplayableModifiers(player), Text.literal(", "),
                                 modifier -> modifier.getName(false).withColor(modifier.color)));
                 player.sendMessage(modifiersText, true);
             } else {
@@ -311,7 +310,7 @@ public class ModdedMurderGameMode extends MurderGameMode {
             PlayerEntity player = serverWorld.getPlayerByUuid(entry.getKey());
             if (player != null) {
                 Role role = entry.getValue();
-                if (role!=null) {
+                if (role != null) {
                     roleAssignments.put(player, role);
 
                     // 根据角色类型减少对应的数量需求
@@ -333,36 +332,35 @@ public class ModdedMurderGameMode extends MurderGameMode {
 
         // 第二步：创建角色池并分配角色
         // 杀手池
-        RoleAssignmentPool killerPool = RoleAssignmentPool.create("Killer", role -> 
-            !Harpymodloader.VANNILA_ROLES.contains(role) && 
-            role.canUseKiller() && 
-            !role.isInnocent() &&
-            role != TMMRoles.CIVILIAN);
+        RoleAssignmentPool killerPool = RoleAssignmentPool.create("Killer",
+                role -> !Harpymodloader.VANNILA_ROLES.contains(role) &&
+                        role.canUseKiller() &&
+                        !role.isInnocent() &&
+                        role != TMMRoles.CIVILIAN);
         List<Role> assignedKillers = killerPool.selectRoles(killerCount);
 
         // 警卫池 - 使用无限重复模式，因为警卫职业数量有限
-        RoleAssignmentPool vigilantePool = RoleAssignmentPool.create("Vigilante", role ->
-            role.isVigilanteTeam());
+        RoleAssignmentPool vigilantePool = RoleAssignmentPool.create("Vigilante", role -> role.isVigilanteTeam());
         List<Role> assignedVigilantes = vigilantePool.selectRoles(vigilanteCount);
 
         // 中立池
-        RoleAssignmentPool naturePool = RoleAssignmentPool.create("Nature", role ->
-            !Harpymodloader.VANNILA_ROLES.contains(role) &&
-            !role.canUseKiller() &&
-            !role.isInnocent() &&
-            role != TMMRoles.CIVILIAN);
+        RoleAssignmentPool naturePool = RoleAssignmentPool.create("Nature",
+                role -> !Harpymodloader.VANNILA_ROLES.contains(role) &&
+                        !role.canUseKiller() &&
+                        !role.isInnocent() &&
+                        role != TMMRoles.CIVILIAN);
         List<Role> assignedNatures = naturePool.selectRoles(natureCount);
 
         // 第三步：计算平民数量（只分配基础非平民角色，不包含补充的平民角色）
         int assignedSpecialCount = assignedKillers.size() + assignedVigilantes.size() + assignedNatures.size();
         int civilianCount = players.size() - assignedSpecialCount - forcedRoles.size();
-        
+
         // 平民池（只包含真正的"非平民"角色，例如医生、探长等）
-        RoleAssignmentPool civilianPool = RoleAssignmentPool.create("Civilian", role ->
-            !Harpymodloader.VANNILA_ROLES.contains(role) &&
-            !role.canUseKiller() &&
-            role.isInnocent() &&
-            role != TMMRoles.CIVILIAN);
+        RoleAssignmentPool civilianPool = RoleAssignmentPool.create("Civilian",
+                role -> !Harpymodloader.VANNILA_ROLES.contains(role) &&
+                        !role.canUseKiller() &&
+                        role.isInnocent() &&
+                        role != TMMRoles.CIVILIAN);
         List<Role> assignedCivilians = civilianPool.selectRoles(civilianCount);
 
         // 第四步：合并所有分配的角色（包括处理关联角色）
@@ -391,19 +389,18 @@ public class ModdedMurderGameMode extends MurderGameMode {
         List<Map.Entry<RoleInstant, Float>> roleWeights = new ArrayList<>();
 
         for (var role : expandedRoles) {
-            roleWeights.add( new AbstractMap.SimpleEntry<>(role, 1f));
+            roleWeights.add(new AbstractMap.SimpleEntry<>(role, 1f));
         }
 
         final var collect = roleWeights
                 .stream()
                 .collect(Collectors.toMap(
-                    a -> a.getKey(),
-                    a -> a.getValue(),
-                    (existing, replacement) -> existing, // 如果键重复，保留第一个值
-                    LinkedHashMap::new));
-        var hashMap = new  HashMap<>( collect);
-        WeightedUtil<RoleInstant> roleSelector = new WeightedUtil<>(hashMap
-                );
+                        a -> a.getKey(),
+                        a -> a.getValue(),
+                        (existing, replacement) -> existing, // 如果键重复，保留第一个值
+                        LinkedHashMap::new));
+        var hashMap = new HashMap<>(collect);
+        WeightedUtil<RoleInstant> roleSelector = new WeightedUtil<>(hashMap);
 
         // 分配展开后的角色给未分配的玩家
         for (ServerPlayerEntity player : unassignedPlayers) {
@@ -418,7 +415,8 @@ public class ModdedMurderGameMode extends MurderGameMode {
 
         return roleAssignments;
     }
-    public record RoleInstant(UUID uuid, Role role){
+
+    public record RoleInstant(UUID uuid, Role role) {
 
     }
 

@@ -23,12 +23,10 @@ import org.ladysnake.cca.api.v3.component.tick.ClientTickingComponent;
 import org.ladysnake.cca.api.v3.component.tick.ServerTickingComponent;
 
 public class WorldModifierComponent implements AutoSyncedComponent, ServerTickingComponent, ClientTickingComponent {
-    public static final ComponentKey<WorldModifierComponent> KEY = ComponentRegistry.getOrCreate(Identifier.of(Harpymodloader.MOD_ID, "modifier"), WorldModifierComponent.class);
+    public static final ComponentKey<WorldModifierComponent> KEY = ComponentRegistry
+            .getOrCreate(Identifier.of(Harpymodloader.MOD_ID, "modifier"), WorldModifierComponent.class);
     private final World world;
     public HashMap<UUID, ArrayList<Modifier>> modifiers = new HashMap<>();
-
-
-
 
     public WorldModifierComponent(World world) {
         this.world = world;
@@ -67,7 +65,8 @@ public class WorldModifierComponent implements AutoSyncedComponent, ServerTickin
 
     public ArrayList<Modifier> getModifiers(UUID uuid) {
         synchronized (this.modifiers) {
-            if (!modifiers.containsKey(uuid)) modifiers.put(uuid, new ArrayList<>());
+            if (!modifiers.containsKey(uuid))
+                modifiers.put(uuid, new ArrayList<>());
             return this.modifiers.get(uuid);
         }
     }
@@ -99,11 +98,11 @@ public class WorldModifierComponent implements AutoSyncedComponent, ServerTickin
         }
         this.sync();
     }
+
     public void addModifier(UUID player, Modifier modifier) {
         getModifiers(player).add(modifier);
         this.sync();
     }
-
 
     @Override
     public void readFromNbt(NbtCompound nbtCompound, RegistryWrapper.WrapperLookup wrapperLookup) {
@@ -157,5 +156,13 @@ public class WorldModifierComponent implements AutoSyncedComponent, ServerTickin
         }
 
         return ret;
+    }
+
+    public ArrayList<Modifier> getDisplayableModifiers(PlayerEntity player) {
+        var modifiers = this.getModifiers(player.getUuid());
+        modifiers.removeIf((modifier) -> {
+            return Harpymodloader.HIDDEN_MODIFIERS.contains(modifier.identifier());
+        });
+        return modifiers;
     }
 }
