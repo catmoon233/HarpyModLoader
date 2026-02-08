@@ -51,7 +51,10 @@ public class Harpymodloader implements ModInitializer {
     public static ArrayList<Role> VANNILA_ROLES = new ArrayList<>();
     public static ArrayList<Role> SPECIAL_ROLES = new ArrayList<>();
     public static ArrayList<Role> OVERWRITE_ROLES = new ArrayList<>();
-    public static ArrayList<Identifier> HIDDEN_MODIFIERS = new ArrayList<>();
+    /**
+     * Use 'Identifier().getPath();'
+     *  */ 
+    public static ArrayList<String> HIDDEN_MODIFIERS = new ArrayList<>();
     public static String MOD_ID = "harpymodloader";
 
     public static GameMode MODDED_GAMEMODE;

@@ -275,9 +275,10 @@ public class ModdedMurderGameMode extends MurderGameMode {
         worldModifierComponent.sync();
 
         for (ServerPlayerEntity player : players) {
-            if (!worldModifierComponent.getModifiers(player).isEmpty()) {
+            var modifiers = worldModifierComponent.getDisplayableModifiers(player);
+            if (!modifiers.isEmpty()) {
                 MutableText modifiersText = Text.translatable("announcement.modifier").formatted(Formatting.GRAY)
-                        .append(Texts.join(worldModifierComponent.getDisplayableModifiers(player), Text.literal(", "),
+                        .append(Texts.join(modifiers, Text.literal(", "),
                                 modifier -> modifier.getName(false).withColor(modifier.color)));
                 player.sendMessage(modifiersText, true);
             } else {

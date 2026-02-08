@@ -161,7 +161,10 @@ public class WorldModifierComponent implements AutoSyncedComponent, ServerTickin
     public ArrayList<Modifier> getDisplayableModifiers(PlayerEntity player) {
         var modifiers = this.getModifiers(player.getUuid());
         modifiers.removeIf((modifier) -> {
-            return Harpymodloader.HIDDEN_MODIFIERS.contains(modifier.identifier());
+            if (Harpymodloader.HIDDEN_MODIFIERS.contains(modifier.identifier().getPath())) {
+                return true;
+            }
+            return false;
         });
         return modifiers;
     }
