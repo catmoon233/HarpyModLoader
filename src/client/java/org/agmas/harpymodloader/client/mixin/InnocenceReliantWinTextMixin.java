@@ -31,6 +31,8 @@ public abstract class InnocenceReliantWinTextMixin {
                     cir.setReturnValue(role.isInnocent() ? RoleAnnouncementTexts.CIVILIAN.getLoseText() : RoleAnnouncementTexts.KILLER.winText);
                     cir.cancel();
                     break;
+                default:
+                    break;
             }
         }
     }
