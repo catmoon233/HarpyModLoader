@@ -96,10 +96,6 @@ public class ModdedMurderGameMode extends MurderGameMode {
                 .filter(role -> role != null && role != TMMRoles.CIVILIAN && role.canUseKiller())
                 .count();
 
-        // 分配修饰符
-        int modifierRoleCount = (int) killCount * HarpyModLoaderConfig.HANDLER.instance().modifierMultiplier;
-        assignModifiers(modifierRoleCount, serverWorld, gameWorldComponent, players);
-
         // 统一应用角色分配并触发相应事件
         for (Map.Entry<PlayerEntity, Role> entry : roleAssignments.entrySet()) {
             final var key = entry.getKey();
@@ -128,6 +124,9 @@ public class ModdedMurderGameMode extends MurderGameMode {
                             (int) (players.size() - killCount)));
             ModdedRoleAssigned.EVENT.invoker().assignModdedRole(player, role);
         }
+        // 分配修饰符（修饰符放在职业分配后）
+        int modifierRoleCount = (int) killCount * HarpyModLoaderConfig.HANDLER.instance().modifierMultiplier;
+        assignModifiers(modifierRoleCount, serverWorld, gameWorldComponent, players);
 
         Harpymodloader.FORCED_MODDED_ROLE.clear();
         Harpymodloader.FORCED_MODDED_ROLE_FLIP.clear();
