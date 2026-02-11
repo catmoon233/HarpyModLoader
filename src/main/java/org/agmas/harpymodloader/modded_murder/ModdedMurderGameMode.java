@@ -359,6 +359,7 @@ public class ModdedMurderGameMode extends MurderGameMode {
         // 平民池（只包含真正的"非平民"角色，例如医生、探长等）
         RoleAssignmentPool civilianPool = RoleAssignmentPool.create("Civilian",
                 role -> !Harpymodloader.VANNILA_ROLES.contains(role) &&
+                         !role.isVigilanteTeam() &&
                         !role.canUseKiller() &&
                         role.isInnocent() &&
                         role != TMMRoles.CIVILIAN);
