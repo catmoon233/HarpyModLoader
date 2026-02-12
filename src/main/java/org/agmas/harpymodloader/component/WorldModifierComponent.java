@@ -6,7 +6,6 @@ import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtHelper;
 import net.minecraft.nbt.NbtList;
 import net.minecraft.registry.RegistryWrapper;
-import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
 import net.minecraft.world.World;
 
@@ -139,7 +138,7 @@ public class WorldModifierComponent implements AutoSyncedComponent, ServerTickin
     }
 
     private ArrayList<UUID> uuidListFromNbt(NbtCompound nbtCompound, String listName) {
-        ArrayList<UUID> ret = new ArrayList();
+        ArrayList<UUID> ret = new ArrayList<>();
 
         for (NbtElement e : nbtCompound.getList(listName, 11)) {
             ret.add(NbtHelper.toUuid(e));
@@ -159,7 +158,7 @@ public class WorldModifierComponent implements AutoSyncedComponent, ServerTickin
     }
 
     public ArrayList<Modifier> getDisplayableModifiers(PlayerEntity player) {
-        var modifiers = this.getModifiers(player.getUuid());
+        var modifiers = new ArrayList<Modifier>(this.getModifiers(player.getUuid()));
         modifiers.removeIf((modifier) -> {
             if (Harpymodloader.HIDDEN_MODIFIERS.contains(modifier.identifier().getPath())) {
                 return true;

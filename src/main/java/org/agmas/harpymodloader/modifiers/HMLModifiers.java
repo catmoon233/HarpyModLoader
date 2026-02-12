@@ -1,7 +1,6 @@
 package org.agmas.harpymodloader.modifiers;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 
 public class HMLModifiers {
 
