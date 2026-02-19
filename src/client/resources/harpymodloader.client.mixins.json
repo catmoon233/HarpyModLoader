@@ -13,7 +13,6 @@
   },
   "mixins": [
     "InnocenceReliantWinTextMixin",
-    "InstinctMixin",
     "MoodRendererMixin"
   ]
 }
