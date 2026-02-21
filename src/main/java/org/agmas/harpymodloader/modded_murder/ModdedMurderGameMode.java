@@ -61,7 +61,9 @@ public class ModdedMurderGameMode extends MurderGameMode {
     @Override
     public void initializeGame(ServerWorld serverWorld, GameWorldComponent gameWorldComponent,
             List<ServerPlayerEntity> players) {
-
+        if (!Harpymodloader.isCommandEnabled) {
+            return;
+        }
         GameInitializeEvent.EVENT.invoker().initializeGame(serverWorld, gameWorldComponent, players);
 
         Harpymodloader.refreshRoles();
@@ -405,7 +407,7 @@ public class ModdedMurderGameMode extends MurderGameMode {
 
         // 分配展开后的角色给未分配的玩家
         Collections.shuffle(unassignedPlayers);
-        
+
         for (ServerPlayerEntity player : unassignedPlayers) {
             Role selectedRole = roleSelector.selectRandomKeyBasedOnWeightsAndRemoved().role();
             if (selectedRole != null) {

@@ -11,6 +11,8 @@ import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
+
+import org.agmas.harpymodloader.Harpymodloader;
 import org.agmas.harpymodloader.commands.argument.ModifierArgumentType;
 import org.agmas.harpymodloader.component.WorldModifierComponent;
 import org.agmas.harpymodloader.events.ModifierAssigned;
@@ -27,6 +29,9 @@ public class AssignModifierCommand {
     }
 
     private static int execute(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+        if(!Harpymodloader.isCommandEnabled) {
+            return 1;
+        }
         ServerPlayerEntity targetPlayer = EntityArgumentType.getPlayer(context, "player");
         Modifier modifier = ModifierArgumentType.getModifier(context, "modifier");
         GameWorldComponent game = GameWorldComponent.KEY.get(targetPlayer.getWorld());

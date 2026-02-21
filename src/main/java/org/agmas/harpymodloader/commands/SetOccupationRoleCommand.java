@@ -28,6 +28,9 @@ public class SetOccupationRoleCommand {
     }
 
     private static int setOccupationRole(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+        if(!Harpymodloader.isCommandEnabled) {
+            return 1;
+        }
         Role mainRole = RoleArgumentType.getRole(context, "mainRole");
         Role companionRole = RoleArgumentType.getRole(context, "companionRole");
 

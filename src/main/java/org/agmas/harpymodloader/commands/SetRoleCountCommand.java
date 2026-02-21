@@ -1,5 +1,7 @@
 package org.agmas.harpymodloader.commands;
 
+import org.agmas.harpymodloader.Harpymodloader;
+
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.context.CommandContext;
@@ -7,7 +9,6 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.Text;
-import org.agmas.harpymodloader.Harpymodloader;
 
 public class SetRoleCountCommand {
 
@@ -33,6 +34,9 @@ public class SetRoleCountCommand {
                         .executes(SetRoleCountCommand::resetCounts));
     }
     private static int setNatureCount(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+        if(!Harpymodloader.isCommandEnabled) {
+            return 1;
+        }
         int count = IntegerArgumentType.getInteger(context, "count");
         forcedNatureCount = count;
         if (count == 0) {

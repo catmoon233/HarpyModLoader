@@ -30,6 +30,9 @@ public class SetEnabledRoleCommand {
     }
 
     private static int execute(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+        if(!Harpymodloader.isCommandEnabled) {
+            return 1;
+        }
         Role role = RoleArgumentType.getRole(context, "role");
         boolean enabled = BoolArgumentType.getBool(context, "enabled");
         HarpyModLoaderConfig.HANDLER.save();

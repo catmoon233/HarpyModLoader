@@ -22,6 +22,9 @@ public class ListRolesCommand {
     }
 
     private static int execute(CommandContext<ServerCommandSource> context) {
+        if(!Harpymodloader.isCommandEnabled) {
+            return 1;
+        }
         HarpyModLoaderConfig.HANDLER.save();
         final MutableText message = Text.empty();
         message.append(Text.translatable("commands.listroles.role.title")).append("\n");

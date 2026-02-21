@@ -26,6 +26,9 @@ public class ForceRoleCommand {
     }
 
     private static int query(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+        if(!Harpymodloader.isCommandEnabled) {
+            return 1;
+        }
         ServerPlayerEntity targetPlayer = EntityArgumentType.getPlayer(context, "player");
         if (!Harpymodloader.FORCED_MODDED_ROLE_FLIP.containsKey(targetPlayer.getUuid())) {
             context.getSource().sendFeedback(() -> Text.translatable("commands.forcerole.query.none", targetPlayer.getDisplayName()), false);

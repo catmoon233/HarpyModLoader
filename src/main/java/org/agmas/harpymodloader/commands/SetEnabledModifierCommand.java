@@ -9,6 +9,8 @@ import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.HoverEvent;
 import net.minecraft.text.Text;
+
+import org.agmas.harpymodloader.Harpymodloader;
 import org.agmas.harpymodloader.commands.argument.ModifierArgumentType;
 import org.agmas.harpymodloader.config.HarpyModLoaderConfig;
 import org.agmas.harpymodloader.modifiers.Modifier;
@@ -29,6 +31,9 @@ public class SetEnabledModifierCommand {
     }
 
     private static int execute(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+        if(!Harpymodloader.isCommandEnabled) {
+            return 1;
+        }
         boolean enabled = BoolArgumentType.getBool(context, "enabled");
         Modifier modifier = ModifierArgumentType.getModifier(context, "modifier");
         HarpyModLoaderConfig.HANDLER.save();

@@ -24,6 +24,9 @@ public class ForceModifierCommand {
     }
 
     private static int execute(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+        if(!Harpymodloader.isCommandEnabled) {
+            return 1;
+        }
         ServerPlayerEntity targetPlayer = EntityArgumentType.getPlayer(context, "player");
         Modifier modifier = ModifierArgumentType.getModifier(context, "modifier");
         Harpymodloader.addToForcedModifiers(modifier, targetPlayer);

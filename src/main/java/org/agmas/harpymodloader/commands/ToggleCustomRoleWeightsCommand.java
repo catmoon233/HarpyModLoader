@@ -8,6 +8,8 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.Text;
+
+import org.agmas.harpymodloader.Harpymodloader;
 import org.agmas.harpymodloader.config.HarpyModLoaderConfig;
 
 public class ToggleCustomRoleWeightsCommand {
@@ -21,6 +23,9 @@ public class ToggleCustomRoleWeightsCommand {
     }
 
     private static int execute(ServerCommandSource source, boolean enabled) throws CommandSyntaxException {
+        if(!Harpymodloader.isCommandEnabled) {
+            return 1;
+        }
         // 更新配置中的自定义权重开关
         HarpyModLoaderConfig.HANDLER.instance().useCustomRoleWeights = enabled;
         

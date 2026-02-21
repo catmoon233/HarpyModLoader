@@ -26,6 +26,9 @@ public class SetCompanionRoleCommand {
     }
 
     private static int execute(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+        if(!Harpymodloader.isCommandEnabled) {
+            return 1;
+        }
         Role primaryRole = RoleArgumentType.getRole(context, "primaryRole");
         Role companionRole = RoleArgumentType.getRole(context, "companionRole");
         
