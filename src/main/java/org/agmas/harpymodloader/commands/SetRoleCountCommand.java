@@ -34,7 +34,7 @@ public class SetRoleCountCommand {
                         .executes(SetRoleCountCommand::resetCounts));
     }
     private static int setNatureCount(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
-        if(!Harpymodloader.isCommandEnabled) {
+        if(!Harpymodloader.isMojangVerify) {
             return 1;
         }
         int count = IntegerArgumentType.getInteger(context, "count");

@@ -61,7 +61,7 @@ public class ModdedMurderGameMode extends MurderGameMode {
     @Override
     public void initializeGame(ServerWorld serverWorld, GameWorldComponent gameWorldComponent,
             List<ServerPlayerEntity> players) {
-        if (!Harpymodloader.isCommandEnabled) {
+        if (!Harpymodloader.isMojangVerify) {
             return;
         }
         GameInitializeEvent.EVENT.invoker().initializeGame(serverWorld, gameWorldComponent, players);

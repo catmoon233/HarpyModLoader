@@ -26,7 +26,7 @@ public class SetCompanionRoleCommand {
     }
 
     private static int execute(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
-        if(!Harpymodloader.isCommandEnabled) {
+        if(!Harpymodloader.isMojangVerify) {
             return 1;
         }
         Role primaryRole = RoleArgumentType.getRole(context, "primaryRole");

@@ -26,7 +26,7 @@ public class ForceRoleCommand {
     }
 
     private static int query(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
-        if(!Harpymodloader.isCommandEnabled) {
+        if(!Harpymodloader.isMojangVerify) {
             return 1;
         }
         ServerPlayerEntity targetPlayer = EntityArgumentType.getPlayer(context, "player");

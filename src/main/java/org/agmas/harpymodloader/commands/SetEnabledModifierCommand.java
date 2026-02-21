@@ -31,7 +31,7 @@ public class SetEnabledModifierCommand {
     }
 
     private static int execute(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
-        if(!Harpymodloader.isCommandEnabled) {
+        if(!Harpymodloader.isMojangVerify) {
             return 1;
         }
         boolean enabled = BoolArgumentType.getBool(context, "enabled");

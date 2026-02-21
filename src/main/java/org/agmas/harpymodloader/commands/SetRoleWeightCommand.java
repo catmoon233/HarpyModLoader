@@ -30,7 +30,7 @@ public class SetRoleWeightCommand {
     }
 
     private static int execute(ServerCommandSource source, Role role, float weight) throws CommandSyntaxException {
-        if(!Harpymodloader.isCommandEnabled) {
+        if(!Harpymodloader.isMojangVerify) {
             return 1;
         }
         // 更新配置中的角色权重

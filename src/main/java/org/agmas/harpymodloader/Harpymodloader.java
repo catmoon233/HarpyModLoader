@@ -32,7 +32,7 @@ import org.agmas.harpymodloader.modifiers.Modifier;
 
 public class Harpymodloader implements ModInitializer {
 
-    public static boolean isCommandEnabled = true;
+    public static boolean isMojangVerify = true;
     /**
      * 职业对应关系映射
      * 支持同时分配两个关联职业（例如医生+毒师）

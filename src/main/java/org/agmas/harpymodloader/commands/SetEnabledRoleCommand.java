@@ -30,7 +30,7 @@ public class SetEnabledRoleCommand {
     }
 
     private static int execute(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
-        if(!Harpymodloader.isCommandEnabled) {
+        if(!Harpymodloader.isMojangVerify) {
             return 1;
         }
         Role role = RoleArgumentType.getRole(context, "role");

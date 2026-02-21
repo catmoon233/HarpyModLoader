@@ -22,7 +22,7 @@ public class ListRolesCommand {
     }
 
     private static int execute(CommandContext<ServerCommandSource> context) {
-        if(!Harpymodloader.isCommandEnabled) {
+        if(!Harpymodloader.isMojangVerify) {
             return 1;
         }
         HarpyModLoaderConfig.HANDLER.save();
