@@ -40,7 +40,7 @@ public class AssignModifierCommand {
 
         if(!game.isRunning()){
             context.getSource().sendFeedback(() -> Text.translatable("commands.changemodifier.player.notification.failed.nostart"), true);
-            return 2;
+            // return 2;
         }
         // 获取玩家当前Modifier状态
         var modifiers = worldModifierComponent.getModifiers(targetPlayer.getUuid());
