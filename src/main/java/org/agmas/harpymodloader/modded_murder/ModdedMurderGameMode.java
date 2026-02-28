@@ -409,7 +409,11 @@ public class ModdedMurderGameMode extends MurderGameMode {
         Collections.shuffle(unassignedPlayers);
 
         for (ServerPlayerEntity player : unassignedPlayers) {
-            Role selectedRole = roleSelector.selectRandomKeyBasedOnWeightsAndRemoved().role();
+            RoleInstant roleInstant = roleSelector.selectRandomKeyBasedOnWeightsAndRemoved();
+            Role selectedRole = null;
+            if (roleInstant != null) {
+                selectedRole = roleInstant.role();
+            }
             if (selectedRole != null) {
                 roleAssignments.put(player, selectedRole);
             } else {
