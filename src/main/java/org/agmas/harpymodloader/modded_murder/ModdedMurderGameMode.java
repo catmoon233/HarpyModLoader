@@ -71,7 +71,7 @@ public class ModdedMurderGameMode extends MurderGameMode {
         HarpyModLoaderConfig.HANDLER.load();
 
         ((TrainWorldComponent) TrainWorldComponent.KEY.get(serverWorld))
-                .setTimeOfDay(TrainWorldComponent.TimeOfDay.NIGHT);
+                .setTimeOfDay(TrainWorldComponent.TimeOfDay.MIDNIGHT);
         gameWorldComponent.clearRoleMap();
         for (ServerPlayerEntity player : players) {
             ResetPlayerEvent.EVENT.invoker().resetPlayer(player);
