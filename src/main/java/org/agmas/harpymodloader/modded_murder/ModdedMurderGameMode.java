@@ -126,7 +126,8 @@ public class ModdedMurderGameMode extends MurderGameMode {
             ModdedRoleAssigned.EVENT.invoker().assignModdedRole(player, role);
         }
         // 分配修饰符（修饰符放在职业分配后）
-        int modifierRoleCount = (int) killCount * HarpyModLoaderConfig.HANDLER.instance().modifierMultiplier;
+        int modifierRoleCount = (int) ((float) players.size()
+                * HarpyModLoaderConfig.HANDLER.instance().modifierMultiplier);
         assignModifiers(modifierRoleCount, serverWorld, gameWorldComponent, players);
 
         Harpymodloader.FORCED_MODDED_ROLE.clear();
@@ -173,50 +174,50 @@ public class ModdedMurderGameMode extends MurderGameMode {
         }
     }
 
-    public void assignModifiers(int desiredRoleCount, ServerWorld serverWorld, GameWorldComponent gameWorldComponent,
+    public void assignModifiers(int desiredModifierCount, ServerWorld serverWorld,
+            GameWorldComponent gameWorldComponent,
             List<ServerPlayerEntity> players) {
         WorldModifierComponent worldModifierComponent = WorldModifierComponent.KEY.get(serverWorld);
         worldModifierComponent.getModifiers().clear();
 
         // 使用临时映射存储要添加的修饰符，避免在遍历过程中修改数据结构
         Map<UUID, List<Modifier>> tempModifierAssignments = new HashMap<>();
+        var allModifiers = new ArrayList<>(HMLModifiers.MODIFIERS);
+        int killerMods = (int) allModifiers.stream().filter(modifier -> modifier.killerOnly).count();
+        Collections.shuffle(allModifiers);
 
-        int killerMods = (int) HMLModifiers.MODIFIERS.stream().filter(modifier -> modifier.killerOnly).count();
-        HMLModifiers.MODIFIERS.forEach((mod) -> {
+        for (var mod : allModifiers) {
             int playersAssigned = 0;
-            int specificDesiredRoleCount = desiredRoleCount;
+            int specificDesiredRoleCount = desiredModifierCount;
+
+            ArrayList<ServerPlayerEntity> shuffledPlayers = new ArrayList<>(players);
+            Collections.shuffle(shuffledPlayers);
 
             if (mod.killerOnly) {
                 specificDesiredRoleCount = (int) Math.floor(Math.floor((double) players.size() / 7) / killerMods);
                 specificDesiredRoleCount = Math.max(specificDesiredRoleCount, 1);
             }
-
-            ArrayList<ServerPlayerEntity> shuffledPlayers = new ArrayList<>(players);
-            Collections.shuffle(shuffledPlayers);
-            Collections.shuffle(shuffledPlayers);
-
             if (Harpymodloader.FORCED_MODDED_MODIFIER.containsKey(mod)) {
                 for (ServerPlayerEntity player : shuffledPlayers) {
                     if (Harpymodloader.FORCED_MODDED_MODIFIER.get(mod).contains(player.getUuid())) {
                         // 临时存储，稍后统一添加
                         tempModifierAssignments.computeIfAbsent(player.getUuid(), k -> new ArrayList<>()).add(mod);
-                        ModifierAssigned.EVENT.invoker().assignModifier(player, mod);
+                        // ModifierAssigned.EVENT.invoker().assignModifier(player, mod);
                         playersAssigned++;
                     }
                 }
             }
-
             for (ServerPlayerEntity player : shuffledPlayers) {
                 if (HarpyModLoaderConfig.HANDLER.instance().disabledModifiers.contains(mod.identifier.toString())) {
-                    continue;
+                    break;
                 }
                 if (playersAssigned >= specificDesiredRoleCount) {
-                    continue;
+                    break;
                 }
 
                 if (Harpymodloader.MODIFIER_MAX.containsKey(mod.identifier)) {
                     if (playersAssigned >= Harpymodloader.MODIFIER_MAX.get(mod.identifier)) {
-                        continue;
+                        break;
                     }
                 }
 
@@ -224,12 +225,12 @@ public class ModdedMurderGameMode extends MurderGameMode {
 
                 if (mod.canOnlyBeAppliedTo != null) {
                     if (gameWorldComponent.getRole(player) != null) {
-                        valid = mod.canOnlyBeAppliedTo.contains(gameWorldComponent.getRole(player));
+                        valid = valid && mod.canOnlyBeAppliedTo.contains(gameWorldComponent.getRole(player));
                     }
                 }
                 if (mod.cannotBeAppliedTo != null) {
                     if (gameWorldComponent.getRole(player) != null) {
-                        valid = !mod.cannotBeAppliedTo.contains(gameWorldComponent.getRole(player));
+                        valid = valid && !mod.cannotBeAppliedTo.contains(gameWorldComponent.getRole(player));
                     }
                 }
                 if (!valid) {
@@ -237,37 +238,37 @@ public class ModdedMurderGameMode extends MurderGameMode {
                 }
 
                 if (mod.killerOnly) {
-                    valid = gameWorldComponent.canUseKillerFeatures(player);
+                    valid = valid && gameWorldComponent.isKillerTeam(player);
                 }
                 if (mod.civilianOnly) {
-                    valid = !gameWorldComponent.canUseKillerFeatures(player);
+                    valid = valid && gameWorldComponent.isInnocent(player);
                 }
                 if (!valid) {
                     continue;
                 }
-
-                if (worldModifierComponent.getModifiers(player) != null && worldModifierComponent.getModifiers(player)
-                        .size() >= HarpyModLoaderConfig.HANDLER.instance().modifierMaximum) {
-                    valid = false;
-                }
-
-                if (!valid) {
-                    continue;
+                var pModifiers = tempModifierAssignments.getOrDefault(player, null);
+                if (pModifiers != null) {
+                    if (pModifiers.size() >= HarpyModLoaderConfig.HANDLER.instance().modifierMaximum) {
+                        continue;
+                    }
+                    if (pModifiers.contains(mod)) {
+                        continue;
+                    }
                 }
 
                 // 临时存储，稍后统一添加
                 tempModifierAssignments.computeIfAbsent(player.getUuid(), k -> new ArrayList<>()).add(mod);
-                ModifierAssigned.EVENT.invoker().assignModifier(player, mod);
                 playersAssigned++;
             }
-
-        });
+        }
 
         // 统一将临时存储的修饰符添加到组件中
         for (Map.Entry<UUID, List<Modifier>> entry : tempModifierAssignments.entrySet()) {
             UUID playerUuid = entry.getKey();
             for (Modifier mod : entry.getValue()) {
+                var p = serverWorld.getPlayerByUuid(playerUuid);
                 worldModifierComponent.addModifier(playerUuid, mod);
+                ModifierAssigned.EVENT.invoker().assignModifier(p, mod);
             }
         }
 
