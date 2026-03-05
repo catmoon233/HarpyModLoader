@@ -120,6 +120,9 @@ public class ModdedMurderGameMode extends MurderGameMode {
 
         for (ServerPlayerEntity player : players) {
             var role = gameWorldComponent.getRole(player);
+            var roleType = PlayerRoleWeightManager.getRoleType$Int(role);
+            PlayerRoleWeightManager.addWeight(player, roleType, 1);
+            // PlayerRoleWeightManager.
             ServerPlayNetworking.send(player,
                     new AnnounceWelcomePayload(role.getIdentifier().toString(), (int) killCount,
                             (int) (players.size() - killCount)));
@@ -346,22 +349,23 @@ public class ModdedMurderGameMode extends MurderGameMode {
         List<Role> assignedVigilantes = vigilantePool.selectRoles(vigilanteCount);
 
         // 中立池
-        RoleAssignmentPool naturePool = RoleAssignmentPool.create("Nature",
-                role -> !Harpymodloader.VANNILA_ROLES.contains(role) &&
+        RoleAssignmentPool neutralsPool = RoleAssignmentPool.create("Nature",
+                role -> (!Harpymodloader.VANNILA_ROLES.contains(role) &&
                         !role.canUseKiller() &&
                         !role.isInnocent() &&
-                        role != TMMRoles.CIVILIAN);
-        List<Role> assignedNatures = naturePool.selectRoles(natureCount);
+                        role != TMMRoles.CIVILIAN) || role.isNeutrals());
+        List<Role> assignedNatures = neutralsPool.selectRoles(natureCount);
 
         // 第三步：计算平民数量（只分配基础非平民角色，不包含补充的平民角色）
         int assignedSpecialCount = assignedKillers.size() + assignedVigilantes.size() + assignedNatures.size();
         int civilianCount = players.size() - assignedSpecialCount - forcedRoles.size();
 
-        // 平民池（只包含真正的"非平民"角色，例如医生、探长等）
+        // 平民池（只包含真正的"平民"角色，例如医生等）
         RoleAssignmentPool civilianPool = RoleAssignmentPool.create("Civilian",
                 role -> !Harpymodloader.VANNILA_ROLES.contains(role) &&
                         !role.isVigilanteTeam() &&
                         !role.canUseKiller() &&
+                        !role.isNeutrals() &&
                         role.isInnocent() &&
                         role != TMMRoles.CIVILIAN);
         List<Role> assignedCivilians = civilianPool.selectRoles(civilianCount);
@@ -392,7 +396,8 @@ public class ModdedMurderGameMode extends MurderGameMode {
         List<Map.Entry<RoleInstant, Float>> roleWeights = new ArrayList<>();
 
         for (var role : expandedRoles) {
-            roleWeights.add(new AbstractMap.SimpleEntry<>(role, 1f));
+            roleWeights.add(new AbstractMap.SimpleEntry<>(role,
+                    HarpyModLoaderConfig.HANDLER.instance().roleWeights.getOrDefault(role.role().identifier(), 1f)));
         }
 
         final var collect = roleWeights
@@ -408,20 +413,24 @@ public class ModdedMurderGameMode extends MurderGameMode {
         // 分配展开后的角色给未分配的玩家
         Collections.shuffle(unassignedPlayers);
 
-        for (ServerPlayerEntity player : unassignedPlayers) {
+        while (unassignedPlayers.size() > 0 && roleSelector.size() > 0) {
             RoleInstant roleInstant = roleSelector.selectRandomKeyBasedOnWeightsAndRemoved();
             Role selectedRole = null;
             if (roleInstant != null) {
                 selectedRole = roleInstant.role();
             }
             if (selectedRole != null) {
-                roleAssignments.put(player, selectedRole);
-            } else {
-                // 如果没有足够的特殊角色，分配平民
-                roleAssignments.put(player, TMMRoles.CIVILIAN);
+                int selectedRoleType = PlayerRoleWeightManager.getRoleType$Int(selectedRole);
+                PlayerEntity selectedPlayer = PlayerRoleAssigner.pickByInverseWeightAndRemove(unassignedPlayers,
+                        selectedRoleType);
+
+                roleAssignments.put(selectedPlayer, selectedRole);
             }
         }
-
+        for (var up : unassignedPlayers) {
+            // 职业不够分配平民
+            roleAssignments.put(up, TMMRoles.CIVILIAN);
+        }
         return roleAssignments;
     }
 
