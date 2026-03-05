@@ -19,7 +19,7 @@ public class PlayerRoleWeightManager {
 
     public static void resetWeight(UUID player) {
         var weightManager = new PlayerRoleWeightManager.WeightInfo();
-        PlayerRoleWeightManager.playerWeights.putIfAbsent(player, weightManager);
+        PlayerRoleWeightManager.playerWeights.put(player, weightManager);
     }
 
     public static int getWeight(UUID player, int type) {
@@ -40,6 +40,11 @@ public class PlayerRoleWeightManager {
         if (weightManager == null) {
             weightManager = new PlayerRoleWeightManager.WeightInfo();
             PlayerRoleWeightManager.playerWeights.putIfAbsent(player, weightManager);
+        }
+        if (weightManager.getWeight(type) >= 100) {
+            // 重置
+            weightManager = new PlayerRoleWeightManager.WeightInfo();
+            PlayerRoleWeightManager.playerWeights.put(player, weightManager);
         }
         weightManager.addWeight(type, weightPlus);
     }
