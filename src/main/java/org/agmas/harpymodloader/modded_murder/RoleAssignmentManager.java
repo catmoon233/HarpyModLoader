@@ -48,8 +48,7 @@ public class RoleAssignmentManager {
             Role companion = getCompanionRole(role.role());
             if (companion != null) {
                 companedRoles.add(role.role());
-                if (companion.isInnocent() || companion.canUseKiller()
-                        || (!companion.canUseKiller() && !companion.isInnocent())) {
+                {
                     final boolean[] isRemoved = { false };
                     expandedRoles.removeIf(ro -> {
                         var r = ro.role();

@@ -349,11 +349,12 @@ public class ModdedMurderGameMode extends MurderGameMode {
         List<Role> assignedVigilantes = vigilantePool.selectRoles(vigilanteCount);
 
         // 中立池
-        RoleAssignmentPool neutralsPool = RoleAssignmentPool.create("Nature",
+        RoleAssignmentPool neutralsPool = RoleAssignmentPool.create("Neutrals",
                 role -> (!Harpymodloader.VANNILA_ROLES.contains(role) &&
-                        !role.canUseKiller() &&
-                        !role.isInnocent() &&
-                        role != TMMRoles.CIVILIAN) || role.isNeutrals());
+                        ((!role.canUseKiller() &&
+                                !role.isInnocent()) || role.isNeutrals())
+                        &&
+                        role != TMMRoles.CIVILIAN));
         List<Role> assignedNatures = neutralsPool.selectRoles(natureCount);
 
         // 第三步：计算平民数量（只分配基础非平民角色，不包含补充的平民角色）
@@ -380,6 +381,7 @@ public class ModdedMurderGameMode extends MurderGameMode {
         // 展开关联角色
         List<RoleInstant> roleInstantList = new ArrayList<>();
         for (Role role : allRoles) {
+            Harpymodloader.LOGGER.info(role.identifier().toString());
             roleInstantList.add(new RoleInstant(UUID.randomUUID(), role));
         }
         List<RoleInstant> expandedRoles = RoleAssignmentManager.expandWithCompanionRoles(roleInstantList);
