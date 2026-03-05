@@ -77,6 +77,9 @@ public class SetPlayerWeightCommand {
 
   public static CompletableFuture<Suggestions> suggestRoleType(CommandContext<ServerCommandSource> context,
       SuggestionsBuilder builder) {
-    return null;
+    builder.suggest(2, Text.literal("Neutrals"));
+    builder.suggest(3, Text.literal("Neutrals For Killers"));
+    builder.suggest(4, Text.literal("Killers"));
+    return builder.buildFuture();
   }
 }
