@@ -17,6 +17,7 @@ import java.util.*;
 public class PlayerRoleAssigner {
 
     public static PlayerEntity pickByInverseWeightAndRemove(List<ServerPlayerEntity> candidates, int roleType) {
+        Collections.shuffle(candidates);
         PlayerEntity selected = pickByInverseWeight(candidates, roleType);
         candidates.remove(selected);
         return selected;
@@ -37,12 +38,13 @@ public class PlayerRoleAssigner {
             return null;
         // 1. 计算每位玩家的反向权重，并累加总和
         Collections.shuffle(candidates);
+        
         double[] inverseWeights = new double[candidates.size()];
         double total = 0.0;
 
         for (int i = 0; i < candidates.size(); i++) {
-            double w = PlayerRoleWeightManager.getRoleWeightPercent(candidates.get(i), roleType);
-            if (w <= 0)
+            double w = PlayerRoleWeightManager.getRoleWeightPercent(candidates.get(i), roleType) * 100;
+            if (w <= 0.5)
                 w = 0;
             // 防止 weight <= 0 导致除零或负概率
             inverseWeights[i] = w;
