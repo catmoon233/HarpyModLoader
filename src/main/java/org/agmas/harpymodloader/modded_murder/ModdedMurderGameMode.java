@@ -381,8 +381,11 @@ public class ModdedMurderGameMode extends MurderGameMode {
         // 展开关联角色
         List<RoleInstant> roleInstantList = new ArrayList<>();
         int i = 0;
+        allRoles.removeIf((r)->{
+            return forcedRoles.containsValue(r);
+        });
         for (Role role : allRoles) {
-            Harpymodloader.LOGGER.info("INIT ROLES: [{}]" + role.identifier().toString(), i);
+            Harpymodloader.LOGGER.debug("INIT ROLES: [{}]" + role.identifier().toString(), i);
             roleInstantList.add(new RoleInstant(UUID.randomUUID(), role));
             i++;
         }

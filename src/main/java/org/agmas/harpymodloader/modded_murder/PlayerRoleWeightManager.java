@@ -79,9 +79,6 @@ public class PlayerRoleWeightManager {
     public static int getRoleType(Role role) {
         if (role == null)
             return -1;
-        if (role.isInnocent() && !role.canUseKiller()) {
-            return 0;
-        }
         if (role.isInnocent()) {
             return 1;
         }
@@ -102,6 +99,28 @@ public class PlayerRoleWeightManager {
             return 4;
         }
         return -1; // Unknown
+    }
+
+    public static int getRoleType_OnlyDistinctKiller(Role r) {
+        int rt = getRoleType(r);
+        if (rt == -1)
+            return -1;
+        if (rt <= 3) {
+            return 1;
+        }
+        return rt;
+    }
+
+    public static int getRoleType_IgnoreNeutralType(Role r) {
+        int rt = getRoleType(r);
+        if (rt == -1)
+            return -1;
+        if (rt <= 1) {
+            return 1;
+        } else if (rt <= 3) {
+            return 2;
+        }
+        return rt;
     }
 
     public static class WeightInfo {
@@ -212,4 +231,5 @@ public class PlayerRoleWeightManager {
             return -1;
         }
     }
+
 }

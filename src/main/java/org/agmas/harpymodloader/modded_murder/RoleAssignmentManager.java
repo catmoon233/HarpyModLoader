@@ -3,6 +3,7 @@ package org.agmas.harpymodloader.modded_murder;
 import dev.doctor4t.trainmurdermystery.api.Role;
 import net.minecraft.entity.player.PlayerEntity;
 import org.agmas.harpymodloader.Harpymodloader;
+import org.agmas.harpymodloader.modded_murder.ModdedMurderGameMode.RoleInstant;
 
 import java.util.*;
 
@@ -30,6 +31,52 @@ public class RoleAssignmentManager {
     }
 
     /**
+     * 
+     * @param companion
+     * @param expandedRoles
+     * @param companionRoles
+     * @param companedRoles
+     * @param tryLevel       尝试匹配等级。0：完全相同，1：忽略中立阵营，2：包含平民，3：包括所有
+     * @return
+     */
+    public static boolean tryRemoveARole(Role companion, List<RoleInstant> expandedRoles, List<Role> companionRoles,
+            List<Role> companedRoles, int tryLevel) {
+        final boolean[] isRemoved = { false };
+
+        expandedRoles.removeIf(ro -> {
+            var r = ro.role();
+            if (!isRemoved[0]) {
+                boolean conditionMet = false;
+                if (tryLevel == 0) {
+                    conditionMet = (PlayerRoleWeightManager
+                            .getRoleType(r) == PlayerRoleWeightManager
+                                    .getRoleType(companion));
+                } else if (tryLevel == 1) {
+                    conditionMet = (PlayerRoleWeightManager
+                            .getRoleType_IgnoreNeutralType(r) == PlayerRoleWeightManager
+                                    .getRoleType_IgnoreNeutralType(companion));
+                } else if (tryLevel == 2) {
+                    conditionMet = (PlayerRoleWeightManager
+                            .getRoleType_OnlyDistinctKiller(r) == PlayerRoleWeightManager
+                                    .getRoleType(companion));
+                } else {
+                    conditionMet = true;
+                }
+
+                if (conditionMet && companionRoles.stream()
+                        .noneMatch(rd -> rd.getIdentifier().equals(r.getIdentifier()))
+                        && companedRoles.stream()
+                                .noneMatch(rd -> rd.getIdentifier().equals(r.getIdentifier()))) {
+                    isRemoved[0] = true;
+                    return true;
+                }
+            }
+            return false;
+        });
+        return isRemoved[0];
+    }
+
+    /**
      * 展开角色列表：如果角色有关联角色，添加关联角色
      * 例如：[医生] -> [医生, 毒师]
      * 注意：允许结果列表中包含重复的角色
@@ -49,24 +96,17 @@ public class RoleAssignmentManager {
             if (companion != null) {
                 companedRoles.add(role.role());
                 {
-                    final boolean[] isRemoved = { false };
-                    expandedRoles.removeIf(ro -> {
-                        var r = ro.role();
-                        if (!isRemoved[0]) {
-                            boolean conditionMet = (PlayerRoleWeightManager
-                                    .getRoleType(r) == PlayerRoleWeightManager
-                                            .getRoleType(companion));
-
-                            if (conditionMet && companionRoles.stream()
-                                    .noneMatch(rd -> rd.getIdentifier().equals(r.getIdentifier()))
-                                    && companedRoles.stream()
-                                            .noneMatch(rd -> rd.getIdentifier().equals(r.getIdentifier()))) {
-                                isRemoved[0] = true;
-                                return true;
+                    if (!tryRemoveARole(companion, expandedRoles, companionRoles, companedRoles, 0)) {
+                        if (!tryRemoveARole(companion, expandedRoles, companionRoles, companedRoles, 1)) {
+                            if (!tryRemoveARole(companion, expandedRoles, companionRoles, companedRoles, 2)) {
+                                if (!tryRemoveARole(companion, expandedRoles, companionRoles, companedRoles, 3)) {
+                                    Harpymodloader.LOGGER
+                                            .error("Unable to remove a role to make room for linked role {}!",
+                                                    role.role().identifier().toString());
+                                }
                             }
                         }
-                        return false;
-                    });
+                    }
                 }
                 companionRoles.add(companion);
             }
