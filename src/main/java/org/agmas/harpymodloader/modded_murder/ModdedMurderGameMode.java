@@ -308,7 +308,7 @@ public class ModdedMurderGameMode extends MurderGameMode {
         Map<UUID, Role> forcedRoles = new HashMap<>(Harpymodloader.FORCED_MODDED_ROLE_FLIP);
         int killerCount = SetRoleCountCommand.getKillerCount(players.size());
         int vigilanteCount = SetRoleCountCommand.getVigilanteCount(players.size());
-        int natureCount = SetRoleCountCommand.getNatureCount(players.size());
+        int neutralsCount = SetRoleCountCommand.getNatureCount(players.size());
 
         // 处理强制分配的角色，减少对应角色类型的数量需求
         for (Map.Entry<UUID, Role> entry : forcedRoles.entrySet()) {
@@ -324,7 +324,7 @@ public class ModdedMurderGameMode extends MurderGameMode {
                     } else if (role.isVigilanteTeam()) {
                         vigilanteCount--;
                     } else if (!role.isInnocent()) {
-                        natureCount--;
+                        neutralsCount--;
                     }
                 }
             }
@@ -333,7 +333,7 @@ public class ModdedMurderGameMode extends MurderGameMode {
         // 确保数量不为负数
         killerCount = Math.max(0, killerCount);
         vigilanteCount = Math.max(0, vigilanteCount);
-        natureCount = Math.max(0, natureCount);
+        neutralsCount = Math.max(0, neutralsCount);
 
         // 第二步：创建角色池并分配角色
         // 杀手池
@@ -355,7 +355,7 @@ public class ModdedMurderGameMode extends MurderGameMode {
                                 !role.isInnocent()) || role.isNeutrals())
                         &&
                         role != TMMRoles.CIVILIAN));
-        List<Role> assignedNatures = neutralsPool.selectRoles(natureCount);
+        List<Role> assignedNatures = neutralsPool.selectRoles(neutralsCount);
 
         // 第三步：计算平民数量（只分配基础非平民角色，不包含补充的平民角色）
         int assignedSpecialCount = assignedKillers.size() + assignedVigilantes.size() + assignedNatures.size();

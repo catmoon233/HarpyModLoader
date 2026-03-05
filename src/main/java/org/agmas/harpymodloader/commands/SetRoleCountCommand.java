@@ -30,11 +30,12 @@ public class SetRoleCountCommand {
                         .then(CommandManager.argument("count", IntegerArgumentType.integer(0))
                                 .executes(SetRoleCountCommand::setNatureCount)))
                 .then(CommandManager.literal("reset")
-                                .executes(SetRoleCountCommand::resetCounts))
-                        .executes(SetRoleCountCommand::resetCounts));
+                        .executes(SetRoleCountCommand::resetCounts))
+                .executes(SetRoleCountCommand::resetCounts));
     }
+
     private static int setNatureCount(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
-        if(!Harpymodloader.isMojangVerify) {
+        if (!Harpymodloader.isMojangVerify) {
             return 1;
         }
         int count = IntegerArgumentType.getInteger(context, "count");
@@ -96,12 +97,14 @@ public class SetRoleCountCommand {
 
         }
     }
+
     public static int getNatureCount(int playerCount) {
+        if (playerCount <= 10)
+            return 0;
         if (forcedNatureCount > 0) {
             return Math.min(forcedNatureCount, playerCount); // 确保不超过玩家总数
         } else {
-            return Math.max(1,playerCount / 8);
-
+            return Math.max(1, playerCount / 6);
         }
-        }
+    }
 }
