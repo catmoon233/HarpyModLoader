@@ -9,6 +9,23 @@ import net.minecraft.entity.player.PlayerEntity;
 public class PlayerRoleWeightManager {
     public static HashMap<UUID, WeightInfo> playerWeights = new HashMap<>();
 
+    public static double getRoleWeightPercent(UUID player, int type) {
+        var weightManager = PlayerRoleWeightManager.playerWeights.get(player);
+        if (weightManager == null) {
+            weightManager = new PlayerRoleWeightManager.WeightInfo();
+            PlayerRoleWeightManager.playerWeights.putIfAbsent(player, weightManager);
+        }
+        int typeWeight = weightManager.getWeight(type);
+        int total = weightManager.getWeightSum();
+        if (total <= 0)
+            total = 1;
+        return (double) typeWeight / (double) total;
+    }
+
+    public static double getRoleWeightPercent(PlayerEntity playerEntity, int roleType) {
+        return getRoleWeightPercent(playerEntity.getUuid(), roleType);
+    }
+
     public static int getWeight(PlayerEntity player, int type) {
         return getWeight(player.getUuid(), type);
     }
@@ -41,7 +58,7 @@ public class PlayerRoleWeightManager {
             weightManager = new PlayerRoleWeightManager.WeightInfo();
             PlayerRoleWeightManager.playerWeights.putIfAbsent(player, weightManager);
         }
-        if (weightManager.getWeight(type) >= 20) {
+        if (weightManager.getWeight(type) >= 50) {
             // 重置
             weightManager = new PlayerRoleWeightManager.WeightInfo();
             PlayerRoleWeightManager.playerWeights.put(player, weightManager);
@@ -59,7 +76,7 @@ public class PlayerRoleWeightManager {
      *         - 3: Neturals for killer
      *         - 4: Killer
      */
-    public static int getRoleType$Int(Role role) {
+    public static int getRoleType(Role role) {
         if (role == null)
             return -1;
         if (role.isInnocent() && !role.canUseKiller()) {
@@ -94,6 +111,10 @@ public class PlayerRoleWeightManager {
         public int neutralsForKillerWeight = 1;
 
         public WeightInfo() {
+        }
+
+        public int getWeightSum() {
+            return this.innocentWeight + this.killerWeight + this.neutralsForKillerWeight + this.neutralsWeight;
         }
 
         public void putInnocentWeight(int weight) {

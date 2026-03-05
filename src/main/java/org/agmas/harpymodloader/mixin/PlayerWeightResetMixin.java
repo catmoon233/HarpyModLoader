@@ -1,6 +1,6 @@
 package org.agmas.harpymodloader.mixin;
 
-import org.agmas.harpymodloader.modded_murder.PlayerRoleWeightManager;
+// import org.agmas.harpymodloader.modded_murder.PlayerRoleWeightManager;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -17,6 +17,7 @@ public class PlayerWeightResetMixin {
     @Inject(method = "onPlayerConnect", at = @At("TAIL"), cancellable = true)
     public void onPlayerConnect(ClientConnection connection, ServerPlayerEntity player, ConnectedClientData clientData,
             CallbackInfo ci) {
-        PlayerRoleWeightManager.resetWeight(player);
+        // PlayerRoleWeightManager.resetWeight(player);
+        // 暂时不清
     }
 }

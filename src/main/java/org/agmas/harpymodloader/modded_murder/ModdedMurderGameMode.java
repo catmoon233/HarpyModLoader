@@ -120,7 +120,7 @@ public class ModdedMurderGameMode extends MurderGameMode {
 
         for (ServerPlayerEntity player : players) {
             var role = gameWorldComponent.getRole(player);
-            var roleType = PlayerRoleWeightManager.getRoleType$Int(role);
+            var roleType = PlayerRoleWeightManager.getRoleType(role);
             PlayerRoleWeightManager.addWeight(player, roleType, 1);
             // PlayerRoleWeightManager.
             ServerPlayNetworking.send(player,
@@ -420,7 +420,7 @@ public class ModdedMurderGameMode extends MurderGameMode {
                 selectedRole = roleInstant.role();
             }
             if (selectedRole != null) {
-                int selectedRoleType = PlayerRoleWeightManager.getRoleType$Int(selectedRole);
+                int selectedRoleType = PlayerRoleWeightManager.getRoleType(selectedRole);
                 PlayerEntity selectedPlayer = PlayerRoleAssigner.pickByInverseWeightAndRemove(unassignedPlayers,
                         selectedRoleType);
 

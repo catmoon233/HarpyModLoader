@@ -39,13 +39,12 @@ public class PlayerRoleAssigner {
         double total = 0.0;
 
         for (int i = 0; i < candidates.size(); i++) {
-            int w = PlayerRoleWeightManager.getWeight(candidates.get(i), roleType);
+            double w = PlayerRoleWeightManager.getRoleWeightPercent(candidates.get(i), roleType);
             if (w <= 0)
-                w = 1;
+                w = 0;
             // 防止 weight <= 0 导致除零或负概率
-            double inv = 1.0 / (double) Math.max(w, 1);
-            inverseWeights[i] = inv;
-            total += inv;
+            inverseWeights[i] = w;
+            total += w;
         }
 
         // 2. 在 [0, total) 范围内随机一个值，按累积区间命中对应玩家
