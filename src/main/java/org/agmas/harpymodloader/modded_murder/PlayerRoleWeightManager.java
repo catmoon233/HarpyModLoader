@@ -41,7 +41,7 @@ public class PlayerRoleWeightManager {
             weightManager = new PlayerRoleWeightManager.WeightInfo();
             PlayerRoleWeightManager.playerWeights.putIfAbsent(player, weightManager);
         }
-        if (weightManager.getWeight(type) >= 10) {
+        if (weightManager.getWeight(type) >= 20) {
             // 重置
             weightManager = new PlayerRoleWeightManager.WeightInfo();
             PlayerRoleWeightManager.playerWeights.put(player, weightManager);
@@ -88,11 +88,16 @@ public class PlayerRoleWeightManager {
     }
 
     public static class WeightInfo {
+        public int innocentWeight = 1;
         public int killerWeight = 1;
         public int neutralsWeight = 1;
         public int neutralsForKillerWeight = 1;
 
         public WeightInfo() {
+        }
+
+        public void putInnocentWeight(int weight) {
+            innocentWeight = weight;
         }
 
         public void putKillerWeight(int weight) {
@@ -117,8 +122,10 @@ public class PlayerRoleWeightManager {
          * @param weight
          */
         public void addWeight(int type, int weight) {
-            if (type == 1)
+            if (type <= 1) {
+                this.innocentWeight += weight;
                 return;
+            }
             if (type == 2) {
                 this.neutralsWeight += (weight);
                 return;
@@ -143,8 +150,10 @@ public class PlayerRoleWeightManager {
          * @param weight
          */
         public void putWeight(int type, int weight) {
-            if (type == 1)
+            if (type <= 1) {
+                putInnocentWeight(weight);
                 return;
+            }
             if (type == 2) {
                 putNeutralsWeight(weight);
                 return;
@@ -168,8 +177,8 @@ public class PlayerRoleWeightManager {
          *             - 4: Killer
          */
         public int getWeight(int type) {
-            if (type == 1)
-                return 0;
+            if (type <= 1)
+                return innocentWeight;
             if (type == 2) {
                 return this.neutralsWeight;
             }
