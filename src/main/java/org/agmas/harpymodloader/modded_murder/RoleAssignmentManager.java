@@ -55,8 +55,8 @@ public class RoleAssignmentManager {
                         var r = ro.role();
                         if (!isRemoved[0]) {
                             boolean conditionMet = (PlayerRoleWeightManager
-                                    .getRoleType$Int(r) == PlayerRoleWeightManager
-                                            .getRoleType$Int(companion));
+                                    .getRoleType(r) == PlayerRoleWeightManager
+                                            .getRoleType(companion));
 
                             if (conditionMet && companionRoles.stream()
                                     .noneMatch(rd -> rd.getIdentifier().equals(r.getIdentifier()))
