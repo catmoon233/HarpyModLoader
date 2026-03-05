@@ -33,6 +33,8 @@ public class PlayerRoleAssigner {
      * @return 被选中的玩家
      */
     public static PlayerEntity pickByInverseWeight(List<ServerPlayerEntity> candidates, int roleType) {
+        if (candidates.isEmpty())
+            return null;
         // 1. 计算每位玩家的反向权重，并累加总和
         Collections.shuffle(candidates);
         double[] inverseWeights = new double[candidates.size()];

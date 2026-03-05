@@ -423,8 +423,8 @@ public class ModdedMurderGameMode extends MurderGameMode {
                 int selectedRoleType = PlayerRoleWeightManager.getRoleType(selectedRole);
                 PlayerEntity selectedPlayer = PlayerRoleAssigner.pickByInverseWeightAndRemove(unassignedPlayers,
                         selectedRoleType);
-
-                roleAssignments.put(selectedPlayer, selectedRole);
+                if (selectedPlayer != null)
+                    roleAssignments.put(selectedPlayer, selectedRole);
             }
         }
         for (var up : unassignedPlayers) {

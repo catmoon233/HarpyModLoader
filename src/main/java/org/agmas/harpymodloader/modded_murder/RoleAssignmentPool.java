@@ -20,7 +20,8 @@ public class RoleAssignmentPool {
     private final String poolName;
     private final boolean allowUnlimitedRepeats;
 
-    private RoleAssignmentPool(String poolName, WeightedUtil<Role> roleWeights, Map<Identifier, Integer> roleCountMap, boolean allowUnlimitedRepeats) {
+    private RoleAssignmentPool(String poolName, WeightedUtil<Role> roleWeights, Map<Identifier, Integer> roleCountMap,
+            boolean allowUnlimitedRepeats) {
         this.poolName = poolName;
         this.roleWeights = roleWeights;
         this.roleCountMap = roleCountMap;
@@ -53,12 +54,15 @@ public class RoleAssignmentPool {
     /**
      * 内部方法：创建角色分配池
      */
-    private static RoleAssignmentPool createInternal(String poolName, Predicate<Role> filter, boolean allowUnlimitedRepeats) {
+    private static RoleAssignmentPool createInternal(String poolName, Predicate<Role> filter,
+            boolean allowUnlimitedRepeats) {
         // 获取所有符合条件的角色
         ArrayList<Role> availableRoles = new ArrayList<>(TMMRoles.ROLES.values());
-        availableRoles.removeIf(role -> 
-            HarpyModLoaderConfig.HANDLER.instance().disabled.contains(role.identifier().toString()) ||
-            !filter.test(role));
+        availableRoles.removeIf(
+                role -> HarpyModLoaderConfig.HANDLER.instance().disabled.contains(role.identifier().toString())
+                        && role.identifier().equals(TMMRoles.DISCOVERY_CIVILIAN.identifier())
+                        && role.identifier().equals(TMMRoles.LOOSE_END.identifier()) &&
+                        !filter.test(role));
 
         // 构建权重映射
         HashMap<Role, Float> roleWeights = new HashMap<>();
@@ -66,7 +70,8 @@ public class RoleAssignmentPool {
             float weight = 1f;
             if (HarpyModLoaderConfig.HANDLER.instance().useCustomRoleWeights) {
                 weight = ModdedWeights.getRoleWeight(role);
-                if (weight <= 0) continue;
+                if (weight <= 0)
+                    continue;
             }
             roleWeights.put(role, weight);
         }
