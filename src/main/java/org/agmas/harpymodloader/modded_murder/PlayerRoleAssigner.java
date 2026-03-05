@@ -17,7 +17,7 @@ import java.util.*;
 public class PlayerRoleAssigner {
 
     public static PlayerEntity pickByInverseWeightAndRemove(List<ServerPlayerEntity> candidates, int roleType) {
-        PlayerEntity selected = pickByInverseWeightAndRemove(candidates, roleType);
+        PlayerEntity selected = pickByInverseWeight(candidates, roleType);
         candidates.remove(selected);
         return selected;
     }
