@@ -41,7 +41,7 @@ public class PlayerRoleWeightManager {
             weightManager = new PlayerRoleWeightManager.WeightInfo();
             PlayerRoleWeightManager.playerWeights.putIfAbsent(player, weightManager);
         }
-        if (weightManager.getWeight(type) >= 100) {
+        if (weightManager.getWeight(type) >= 10) {
             // 重置
             weightManager = new PlayerRoleWeightManager.WeightInfo();
             PlayerRoleWeightManager.playerWeights.put(player, weightManager);
