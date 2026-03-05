@@ -8,7 +8,8 @@
     "CollisionMixin",
     "GameFunctionsMixin",
     "ModifierAndRoleResetMixin",
-    "VannilaStartMixin"
+    "VannilaStartMixin",
+    "PlayerWeightResetMixin"
   ],
   "injectors": {
     "defaultRequire": 1

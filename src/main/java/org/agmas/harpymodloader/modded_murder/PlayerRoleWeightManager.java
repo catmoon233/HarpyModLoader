@@ -13,6 +13,15 @@ public class PlayerRoleWeightManager {
         return getWeight(player.getUuid(), type);
     }
 
+    public static void resetWeight(PlayerEntity player) {
+        resetWeight(player.getUuid());
+    }
+
+    public static void resetWeight(UUID player) {
+        var weightManager = new PlayerRoleWeightManager.WeightInfo();
+        PlayerRoleWeightManager.playerWeights.putIfAbsent(player, weightManager);
+    }
+
     public static int getWeight(UUID player, int type) {
         var weightManager = PlayerRoleWeightManager.playerWeights.get(player);
         if (weightManager == null) {
