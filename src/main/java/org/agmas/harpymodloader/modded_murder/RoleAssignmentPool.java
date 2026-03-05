@@ -60,8 +60,8 @@ public class RoleAssignmentPool {
         ArrayList<Role> availableRoles = new ArrayList<>(TMMRoles.ROLES.values());
         availableRoles.removeIf(
                 role -> HarpyModLoaderConfig.HANDLER.instance().disabled.contains(role.identifier().toString())
-                        && role.identifier().equals(TMMRoles.DISCOVERY_CIVILIAN.identifier())
-                        && role.identifier().equals(TMMRoles.LOOSE_END.identifier()) &&
+                        || role.identifier().equals(TMMRoles.DISCOVERY_CIVILIAN.identifier())
+                        || role.identifier().equals(TMMRoles.LOOSE_END.identifier()) ||
                         !filter.test(role));
 
         // 构建权重映射

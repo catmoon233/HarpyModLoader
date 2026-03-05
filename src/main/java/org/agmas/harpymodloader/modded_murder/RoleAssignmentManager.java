@@ -91,7 +91,7 @@ public class RoleAssignmentManager {
         // 如果该角色有关联角色，需要为其他玩家分配相应的关联角色
         Role companionRole = getCompanionRole(role);
         if (companionRole != null) {
-            Harpymodloader.LOGGER.fine(
+            Harpymodloader.LOGGER.debug(
                     String.format("Role %s has companion role %s",
                             role.getIdentifier(), companionRole.getIdentifier()));
         }

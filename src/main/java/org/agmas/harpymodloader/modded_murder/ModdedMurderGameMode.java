@@ -105,7 +105,7 @@ public class ModdedMurderGameMode extends MurderGameMode {
                 gameWorldComponent.addRole(key, value);
 
                 value.getDefaultItems().forEach(item -> key.getInventory().offerOrDrop(item));
-                Harpymodloader.LOGGER.fine("Assigned role " + value.getIdentifier() + " to " + key.getName());
+                Harpymodloader.LOGGER.debug("Assigned role " + value.getIdentifier() + " to " + key.getName());
                 if (value.canUseKiller()) {
                     PlayerShopComponent playerShopComponent = PlayerShopComponent.KEY.get(key);
                     playerShopComponent.setBalance(100 + playerShopComponent.balance);
@@ -114,7 +114,7 @@ public class ModdedMurderGameMode extends MurderGameMode {
                 // 如果没有分配角色，则分配默认平民角色
                 gameWorldComponent.addRole(key, TMMRoles.CIVILIAN);
                 Harpymodloader.LOGGER
-                        .fine("Assigned role " + TMMRoles.CIVILIAN.getIdentifier() + " to " + key.getName());
+                        .debug("Assigned role " + TMMRoles.CIVILIAN.getIdentifier() + " to " + key.getName());
             }
         }
 
@@ -380,9 +380,11 @@ public class ModdedMurderGameMode extends MurderGameMode {
 
         // 展开关联角色
         List<RoleInstant> roleInstantList = new ArrayList<>();
+        int i = 0;
         for (Role role : allRoles) {
-            Harpymodloader.LOGGER.info(role.identifier().toString());
+            Harpymodloader.LOGGER.info("INIT ROLES: [{}]" + role.identifier().toString(), i);
             roleInstantList.add(new RoleInstant(UUID.randomUUID(), role));
+            i++;
         }
         List<RoleInstant> expandedRoles = RoleAssignmentManager.expandWithCompanionRoles(roleInstantList);
 
