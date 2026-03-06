@@ -32,13 +32,13 @@ public class SetPlayerWeightCommand {
                 .executes(context -> executeGet(context.getSource(),
                     EntityArgumentType.getPlayer(context, "player"),
                     0))
-                .then(CommandManager.argument("role", IntegerArgumentType.integer(0, 4))
+                .then(CommandManager.argument("role", IntegerArgumentType.integer(0, 5))
                     .suggests(SetPlayerWeightCommand::suggestRoleType)
                     .executes(context -> executeGet(context.getSource(),
                         EntityArgumentType.getPlayer(context, "player"),
                         IntegerArgumentType.getInteger(context, "role")))))
             .then(CommandManager.literal("set")
-                .then(CommandManager.argument("role", IntegerArgumentType.integer(1, 4))
+                .then(CommandManager.argument("role", IntegerArgumentType.integer(1, 5))
                     .suggests(SetPlayerWeightCommand::suggestRoleType)
                     .then(CommandManager.argument("weight", IntegerArgumentType.integer(0))
                         .executes(context -> executeSet(context.getSource(),
@@ -54,7 +54,7 @@ public class SetPlayerWeightCommand {
     }
     if (player == null)
       return 0;
-    final String[] TypeMappings = { "ALL", "INNOCENT", "NEUTRALS", "NEUTRALS_FOR_KILLER", "KILLER" };
+    final String[] TypeMappings = { "All", "Innocent", "Neutral", "Neutral for killers", "Killer", "Vigilante" };
     if (roleType == 0) {
       var weightManager = PlayerRoleWeightManager.playerWeights.get(player.getUuid());
       if (weightManager == null) {
@@ -67,7 +67,7 @@ public class SetPlayerWeightCommand {
       source.sendFeedback(
           () -> Text.translatable("Player [%s]", player.getDisplayName()).formatted(Formatting.GOLD),
           false);
-      for (int i = 1; i <= 4; i++) {
+      for (int i = 1; i <= 5; i++) {
         // 获取玩家角色权重
         final int roleType_1 = i;
         int weight = weightManager.getWeight(i);
@@ -114,9 +114,11 @@ public class SetPlayerWeightCommand {
 
   public static CompletableFuture<Suggestions> suggestRoleType(CommandContext<ServerCommandSource> context,
       SuggestionsBuilder builder) {
-    builder.suggest(2, Text.literal("Neutrals"));
-    builder.suggest(3, Text.literal("Neutrals For Killers"));
-    builder.suggest(4, Text.literal("Killers"));
+    builder.suggest(1, Text.literal("Innocent"));
+    builder.suggest(2, Text.literal("Neutral"));
+    builder.suggest(3, Text.literal("Neutral For Killers"));
+    builder.suggest(4, Text.literal("Killer"));
+    builder.suggest(5, Text.literal("Vigilante"));
     return builder.buildFuture();
   }
 }

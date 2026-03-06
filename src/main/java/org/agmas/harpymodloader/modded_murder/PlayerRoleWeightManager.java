@@ -63,7 +63,7 @@ public class PlayerRoleWeightManager {
             weightManager = new PlayerRoleWeightManager.WeightInfo();
             PlayerRoleWeightManager.playerWeights.putIfAbsent(player, weightManager);
         }
-        if (weightManager.getWeight(type) >= 1000) {
+        if (weightManager.getWeight(type) >= 100) {
             // 重置
             weightManager = new PlayerRoleWeightManager.WeightInfo();
             PlayerRoleWeightManager.playerWeights.put(player, weightManager);
@@ -80,10 +80,15 @@ public class PlayerRoleWeightManager {
      *         - 2: Neturals but not for killer
      *         - 3: Neturals for killer
      *         - 4: Killer
+     *         - 5: Vigilante
      */
     public static int getRoleType(Role role) {
         if (role == null)
             return -1;
+
+        if (role.isVigilanteTeam()) {
+            return 5;
+        }
         if (role.isInnocent()) {
             return 1;
         }
@@ -103,6 +108,7 @@ public class PlayerRoleWeightManager {
         if (role.canUseKiller()) {
             return 4;
         }
+
         return -1; // Unknown
     }
 
@@ -110,7 +116,7 @@ public class PlayerRoleWeightManager {
         int rt = getRoleType(r);
         if (rt == -1)
             return -1;
-        if (rt <= 3) {
+        if (rt <= 3 || rt == 5) {
             return 1;
         }
         return rt;
@@ -133,16 +139,22 @@ public class PlayerRoleWeightManager {
         public int killerWeight = 1;
         public int neutralsWeight = 1;
         public int neutralsForKillerWeight = 1;
+        public int vigilanteWeight = 1;
 
         public WeightInfo() {
         }
 
         public int getWeightSum() {
-            return this.innocentWeight + this.killerWeight + this.neutralsForKillerWeight + this.neutralsWeight;
+            return this.innocentWeight + this.killerWeight + this.neutralsForKillerWeight + this.neutralsWeight
+                    + this.vigilanteWeight;
         }
 
         public void putInnocentWeight(int weight) {
             innocentWeight = weight;
+        }
+
+        public void putVigilanteWeight(int weight) {
+            vigilanteWeight = weight;
         }
 
         public void putKillerWeight(int weight) {
@@ -183,6 +195,10 @@ public class PlayerRoleWeightManager {
                 this.killerWeight += (weight);
                 return;
             }
+            if (type == 5) {
+                this.vigilanteWeight += (weight);
+                return;
+            }
         }
 
         /**
@@ -211,6 +227,11 @@ public class PlayerRoleWeightManager {
                 putKillerWeight(weight);
                 return;
             }
+
+            if (type == 5) {
+                putVigilanteWeight(weight);
+                return;
+            }
         }
 
         /**
@@ -232,6 +253,9 @@ public class PlayerRoleWeightManager {
             }
             if (type == 4) {
                 return this.killerWeight;
+            }
+            if (type == 5) {
+                return this.vigilanteWeight;
             }
             return -1;
         }
