@@ -21,7 +21,7 @@ public class PlayerWeightResetMixin {
         // 暂时不清
     }
 
-    @Inject(method = "onPlayerDisconnect", at = @At("TAIL"), cancellable = true)
+    @Inject(method = "remove", at = @At("HEAD"), cancellable = true)
     public void onPlayerDisconnect(ServerPlayerEntity player,
             CallbackInfo ci) {
         PlayerRoleWeightManager.clearWeight(player.getUuid());
