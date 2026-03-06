@@ -67,7 +67,7 @@ public class SetPlayerWeightCommand {
         final int roleType_1 = i;
         int weight = weightManager.getWeight(i);
         double percent = 100 * (1 - weight / weightTotal);
-        source.sendMessage(Text.translatable("%s(%s): Role Selected Weight: %s%",
+        source.sendMessage(Text.translatable("%s(%s): Role Selected Weight: %s%%",
             TypeMappings[roleType_1],
             roleType_1, percent));
       }
