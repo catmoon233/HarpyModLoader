@@ -66,7 +66,7 @@ public class SetPlayerWeightCommand {
         // 获取玩家角色权重
         final int roleType_1 = i;
         int weight = weightManager.getWeight(i);
-        double percent = 100 * (1 - weight / weightTotal);
+        double percent = 100 * (1. - (double)weight / (double)weightTotal);
         source.sendMessage(Text.translatable("%s(%s): Role Selected Weight: %s%%",
             TypeMappings[roleType_1],
             roleType_1, percent));

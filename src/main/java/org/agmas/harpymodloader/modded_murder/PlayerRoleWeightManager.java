@@ -19,7 +19,7 @@ public class PlayerRoleWeightManager {
         int total = weightManager.getWeightSum();
         if (total <= 0)
             total = 1;
-        return 1 - (double) typeWeight / (double) total;
+        return 1. - (double) typeWeight / (double) total;
     }
 
     public static double getRoleWeightPercent(PlayerEntity playerEntity, int roleType) {
