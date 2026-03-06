@@ -12,6 +12,7 @@ import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -58,17 +59,17 @@ public class SetPlayerWeightCommand {
       int weightTotal = weightManager.getWeightSum();
       if (weightTotal == 0)
         weightTotal = 1;
+      source.sendFeedback(
+          () -> Text.translatable("Player [%s]", player.getDisplayName()).formatted(Formatting.GOLD),
+          false);
       for (int i = 1; i <= 4; i++) {
         // 获取玩家角色权重
         final int roleType_1 = i;
         int weight = weightManager.getWeight(i);
         double percent = 100 * (1 - weight / weightTotal);
-        source.sendFeedback(
-            () -> Text.translatable("Player: %s\nRole Type: %s(%s)\nRole Selected Weight: %s%",
-                player.getDisplayName(),
-                TypeMappings[roleType_1],
-                roleType_1, percent),
-            true);
+        source.sendMessage(Text.translatable("%s(%s): Role Selected Weight: %s%",
+            TypeMappings[roleType_1],
+            roleType_1, percent));
       }
       return 1;
     }
