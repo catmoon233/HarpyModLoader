@@ -23,6 +23,9 @@ public class SetPlayerWeightCommand {
 
   public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
     dispatcher.register(CommandManager.literal("playerRoleWeight")
+        .executes(context -> executeGet(context.getSource(),
+            context.getSource().getPlayer(),
+            0))
         .requires(serverCommandSource -> serverCommandSource.hasPermissionLevel(2))
         .then(CommandManager.argument("player", EntityArgumentType.player())
             .then(CommandManager.literal("get")
@@ -49,6 +52,8 @@ public class SetPlayerWeightCommand {
     if (!Harpymodloader.isMojangVerify) {
       return 1;
     }
+    if (player == null)
+      return 0;
     final String[] TypeMappings = { "ALL", "INNOCENT", "NEUTRALS", "NEUTRALS_FOR_KILLER", "KILLER" };
     if (roleType == 0) {
       var weightManager = PlayerRoleWeightManager.playerWeights.get(player.getUuid());
