@@ -25,7 +25,10 @@ public class SetPlayerWeightCommand {
         .requires(serverCommandSource -> serverCommandSource.hasPermissionLevel(2))
         .then(CommandManager.argument("player", EntityArgumentType.player())
             .then(CommandManager.literal("get")
-                .then(CommandManager.argument("role", IntegerArgumentType.integer(1, 4))
+                .executes(context -> executeGet(context.getSource(),
+                    EntityArgumentType.getPlayer(context, "player"),
+                    0))
+                .then(CommandManager.argument("role", IntegerArgumentType.integer(0, 4))
                     .suggests(SetPlayerWeightCommand::suggestRoleType)
                     .executes(context -> executeGet(context.getSource(),
                         EntityArgumentType.getPlayer(context, "player"),
@@ -45,7 +48,33 @@ public class SetPlayerWeightCommand {
     if (!Harpymodloader.isMojangVerify) {
       return 1;
     }
-    // 更新玩家角色权重
+    final String[] TypeMappings = { "ALL", "INNOCENT", "NEUTRALS", "NEUTRALS_FOR_KILLER", "KILLER" };
+    if (roleType == 0) {
+      var weightManager = PlayerRoleWeightManager.playerWeights.get(player.getUuid());
+      if (weightManager == null) {
+        weightManager = new PlayerRoleWeightManager.WeightInfo();
+        PlayerRoleWeightManager.playerWeights.putIfAbsent(player.getUuid(), weightManager);
+      }
+      int weightTotal = weightManager.getWeightSum();
+      if (weightTotal == 0)
+        weightTotal = 1;
+      for (int i = 1; i <= 4; i++) {
+        // 获取玩家角色权重
+        final int roleType_1 = i;
+        int weight = weightManager.getWeight(i);
+        double percent = 100 * (1 - weight / weightTotal);
+        source.sendFeedback(
+            () -> Text.translatable("Player: %s\nRole Type: %s(%s)\nRole Selected Weight: %s%",
+                player.getDisplayName(),
+                TypeMappings[roleType_1],
+                roleType_1, percent),
+            true);
+      }
+      return 1;
+    }
+    if (roleType >= TypeMappings.length)
+      return 0;
+    // 获取玩家角色权重
     var weightManager = PlayerRoleWeightManager.playerWeights.get(player.getUuid());
     if (weightManager == null) {
       weightManager = new PlayerRoleWeightManager.WeightInfo();
@@ -53,7 +82,9 @@ public class SetPlayerWeightCommand {
     }
     int weight = weightManager.getWeight(roleType);
     source.sendFeedback(
-        () -> Text.translatable("Player [%s]\nRole Type [%s] Weight [%s]", player.getDisplayName(), roleType, weight),
+        () -> Text.translatable("Player [%s]\nRole Type [%s(%s)] Weight [%s]", player.getDisplayName(),
+            TypeMappings[roleType],
+            roleType, weight),
         true);
     return 1;
   }
