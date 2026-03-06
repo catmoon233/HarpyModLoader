@@ -19,7 +19,7 @@ public class PlayerRoleWeightManager {
         int total = weightManager.getWeightSum();
         if (total <= 0)
             total = 1;
-        return (double) typeWeight / (double) total;
+        return 1 - (double) typeWeight / (double) total;
     }
 
     public static double getRoleWeightPercent(PlayerEntity playerEntity, int roleType) {
@@ -32,6 +32,11 @@ public class PlayerRoleWeightManager {
 
     public static void resetWeight(PlayerEntity player) {
         resetWeight(player.getUuid());
+    }
+
+    public static void clearWeight(UUID player) {
+        if (playerWeights.containsKey(player))
+            playerWeights.remove(player);
     }
 
     public static void resetWeight(UUID player) {
@@ -58,7 +63,7 @@ public class PlayerRoleWeightManager {
             weightManager = new PlayerRoleWeightManager.WeightInfo();
             PlayerRoleWeightManager.playerWeights.putIfAbsent(player, weightManager);
         }
-        if (weightManager.getWeight(type) >= 50) {
+        if (weightManager.getWeight(type) >= 1000) {
             // 重置
             weightManager = new PlayerRoleWeightManager.WeightInfo();
             PlayerRoleWeightManager.playerWeights.put(player, weightManager);
