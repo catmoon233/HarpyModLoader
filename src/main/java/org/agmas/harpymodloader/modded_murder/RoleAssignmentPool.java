@@ -123,7 +123,11 @@ public class RoleAssignmentPool {
                         break;
                     } else {
                         if (selected.size() > roleOccupiedCount - 1) {
-                            selected.remove(0);
+                            for (int k = 0; k < roleOccupiedCount - 1; k++) {
+                                selected.remove(0);
+                            }
+                            selected.add(role);
+                            break;
                         }
                     }
                 }
