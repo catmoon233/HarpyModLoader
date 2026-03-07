@@ -107,11 +107,20 @@ public class RoleAssignmentPool {
      * @return 选中的角色列表
      */
     public List<Role> selectRoles(int count) {
+        final int maxTrial = 3;
+        int needCount = count;
         List<Role> selected = new ArrayList<>();
-        for (int i = 0; i < count; i++) {
-            Role role = selectRole();
-            if (role != null) {
-                selected.add(role);
+        for (int i = 0; i < needCount; i++) {
+            for (int j = 0; j < maxTrial; j++) {
+                Role role = selectRole();
+                if (role != null) {
+                    int roleOccupiedCount = role.getOccupiedRoleCount();
+                    if (i + roleOccupiedCount <= needCount) {
+                        selected.add(role);
+                        needCount = needCount - (roleOccupiedCount - 1);
+                        break;
+                    }
+                }
             }
         }
         return selected;
