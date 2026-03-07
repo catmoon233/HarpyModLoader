@@ -115,10 +115,16 @@ public class RoleAssignmentPool {
                 Role role = selectRole();
                 if (role != null) {
                     int roleOccupiedCount = role.getOccupiedRoleCount();
+                    if (roleOccupiedCount <= 0)
+                        roleOccupiedCount = 1;
                     if (i + roleOccupiedCount <= needCount) {
                         selected.add(role);
                         needCount = needCount - (roleOccupiedCount - 1);
                         break;
+                    } else {
+                        if (selected.size() > roleOccupiedCount - 1) {
+                            selected.remove(0);
+                        }
                     }
                 }
             }
