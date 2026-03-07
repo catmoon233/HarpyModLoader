@@ -30,6 +30,7 @@ import org.agmas.harpymodloader.config.HarpyModLoaderConfig;
 import org.agmas.harpymodloader.events.GameInitializeEvent;
 import org.agmas.harpymodloader.events.ModdedRoleAssigned;
 import org.agmas.harpymodloader.events.ModifierAssigned;
+import org.agmas.harpymodloader.events.OnGamePlayerRolesConfirm;
 import org.agmas.harpymodloader.events.ResetPlayerEvent;
 import org.agmas.harpymodloader.commands.SetRoleCountCommand;
 import org.agmas.harpymodloader.modifiers.HMLModifiers;
@@ -91,7 +92,7 @@ public class ModdedMurderGameMode extends MurderGameMode {
             List<ServerPlayerEntity> players) {
         // 新的模块化角色分配流程
         Map<PlayerEntity, Role> roleAssignments = assignRolesToPlayers(serverWorld, players);
-
+        OnGamePlayerRolesConfirm.EVENT.invoker().beforeAssignRole(roleAssignments);
         // 计算有特殊角色的玩家数量（用于AnnounceWelcomePayload）
         long killCount = roleAssignments.values().stream()
                 .filter(role -> role != null && role != TMMRoles.CIVILIAN && role.canUseKiller())
@@ -381,7 +382,7 @@ public class ModdedMurderGameMode extends MurderGameMode {
         // 展开关联角色
         List<RoleInstant> roleInstantList = new ArrayList<>();
         int i = 0;
-        allRoles.removeIf((r)->{
+        allRoles.removeIf((r) -> {
             return forcedRoles.containsValue(r);
         });
         for (Role role : allRoles) {
