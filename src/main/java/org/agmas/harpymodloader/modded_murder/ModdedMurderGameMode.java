@@ -103,7 +103,7 @@ public class ModdedMurderGameMode extends MurderGameMode {
             final var key = entry.getKey();
             final var value = entry.getValue();
             if (value != null) {
-                gameWorldComponent.addRole(key, value);
+                gameWorldComponent.addRole(key, value, false);
 
                 value.getDefaultItems().forEach(item -> key.getInventory().offerOrDrop(item));
                 Harpymodloader.LOGGER.debug("Assigned role " + value.getIdentifier() + " to " + key.getName());
@@ -113,12 +113,15 @@ public class ModdedMurderGameMode extends MurderGameMode {
                 }
             } else {
                 // 如果没有分配角色，则分配默认平民角色
-                gameWorldComponent.addRole(key, TMMRoles.CIVILIAN);
+                gameWorldComponent.addRole(key, TMMRoles.CIVILIAN, false);
                 Harpymodloader.LOGGER
                         .debug("Assigned role " + TMMRoles.CIVILIAN.getIdentifier() + " to " + key.getName());
             }
         }
 
+        gameWorldComponent.syncRoles();
+        // 同步职业
+        
         for (ServerPlayerEntity player : players) {
             var role = gameWorldComponent.getRole(player);
             var roleType = PlayerRoleWeightManager.getRoleType(role);
@@ -130,10 +133,10 @@ public class ModdedMurderGameMode extends MurderGameMode {
             ModdedRoleAssigned.EVENT.invoker().assignModdedRole(player, role);
         }
         // 分配修饰符（修饰符放在职业分配后）
+
         int modifierRoleCount = (int) ((float) players.size()
                 * HarpyModLoaderConfig.HANDLER.instance().modifierMultiplier);
         assignModifiers(modifierRoleCount, serverWorld, gameWorldComponent, players);
-
         Harpymodloader.FORCED_MODDED_ROLE.clear();
         Harpymodloader.FORCED_MODDED_ROLE_FLIP.clear();
         Harpymodloader.FORCED_MODDED_MODIFIER.clear();
@@ -271,7 +274,7 @@ public class ModdedMurderGameMode extends MurderGameMode {
             UUID playerUuid = entry.getKey();
             for (Modifier mod : entry.getValue()) {
                 var p = serverWorld.getPlayerByUuid(playerUuid);
-                worldModifierComponent.addModifier(playerUuid, mod);
+                worldModifierComponent.addModifier(playerUuid, mod, false);
                 ModifierAssigned.EVENT.invoker().assignModifier(p, mod);
             }
         }

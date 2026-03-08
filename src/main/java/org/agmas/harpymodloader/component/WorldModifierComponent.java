@@ -91,19 +91,29 @@ public class WorldModifierComponent implements AutoSyncedComponent, ServerTickin
 
     }
 
-    public void removeModifier(UUID player, Modifier modifier) {
+    public void removeModifier(UUID player, Modifier modifier, boolean sync) {
         synchronized (this.modifiers) {
             var pp = getModifiers(player);
             if (pp != null) {
                 pp.remove(modifier);
             }
         }
-        this.sync();
+        if (sync)
+            this.sync();
+    }
+
+    public void removeModifier(UUID player, Modifier modifier) {
+        this.removeModifier(player, modifier, true);
+    }
+
+    public void addModifier(UUID player, Modifier modifier, boolean sync) {
+        getModifiers(player).add(modifier);
+        if (sync)
+            this.sync();
     }
 
     public void addModifier(UUID player, Modifier modifier) {
-        getModifiers(player).add(modifier);
-        this.sync();
+        this.addModifier(player, modifier, true);
     }
 
     @Override
