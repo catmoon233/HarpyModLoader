@@ -95,7 +95,10 @@ public class RoleAssignmentManager {
             Role companion = getCompanionRole(role.role());
             if (companion != null) {
                 companedRoles.add(role.role());
-                {
+                int removeCount = role.role().getOccupiedRoleCount();
+                if (removeCount < 0)
+                    removeCount = 0;
+                for (int i = 0; i < removeCount; i++) {
                     if (!tryRemoveARole(companion, expandedRoles, companionRoles, companedRoles, 0)) {
                         if (!tryRemoveARole(companion, expandedRoles, companionRoles, companedRoles, 1)) {
                             if (!tryRemoveARole(companion, expandedRoles, companionRoles, companedRoles, 2)) {
